@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+
+  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px;">
+    <div>
+      <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary);">Security Operations Center (SOC)</h1>
+      <p style="font-size: 13px; color: var(--text-secondary);">Real-time monitoring across 5 NeuroShield AI Security Layers</p>
+    </div>
+    <button id="btn-run-sim" class="btn btn-primary">⚡ RUN COMPLETE NEUROSHIELD SIMULATION</button>
+  </div>
+
+  <!-- Metric Cards Grid -->
+  <div class="grid-metrics">
+    <div class="metric-card">
+      <div class="metric-title">Overall Security Score</div>
+      <div class="metric-value" id="val-security-score" style="color: var(--accent-cyan);">85/100</div>
+      <div class="metric-subtitle" id="txt-security-status">SYSTEM SECURE</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Adaptive Trust Score</div>
+      <div class="metric-value" id="val-trust-score" style="color: var(--accent-green);">88/100</div>
+      <div class="metric-subtitle" id="txt-trust-level">HIGH TRUST</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Human Risk Prediction</div>
+      <div class="metric-value" id="val-human-risk" style="color: var(--accent-yellow);">18%</div>
+      <div class="metric-subtitle" id="txt-human-risk-cat">LOW RISK</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Threat Probability</div>
+      <div class="metric-value" id="val-threat-prob" style="color: var(--accent-magenta);">0.08</div>
+      <div class="metric-subtitle" id="txt-threat-state">NORMAL STATE</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">Active Alerts</div>
+      <div class="metric-value" id="val-active-alerts" style="color: var(--accent-red);">0</div>
+      <div class="metric-subtitle">UNRESOLVED ALERTS</div>
+    </div>
+  </div>
+
+  <!-- Main View Sections -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Active Alerts Card -->
+    <div class="glass-panel" style="padding: 20px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Priority Security Alerts</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Severity</th>
+              <th>Alert Title</th>
+              <th>Source Layer</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-alerts-body">
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading active alerts...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Live Event Stream Card -->
+    <div class="glass-panel" style="padding: 20px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Recent Security Events</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Event Type</th>
+              <th>Source Layer</th>
+              <th>Severity</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-events-body">
+            <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Loading security events...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  async function loadDashboardData() {
+    try {
+      const summaryRes = await window.apiClient.get('/api/reports/summary');
+      const s = (summaryRes && summaryRes.summary) || {};
+
+      document.getElementById('val-security-score').textContent = `${s.overallTrustScore || 85}/100`;
+      document.getElementById('val-trust-score').textContent = `${s.overallTrustScore || 85}/100`;
+      document.getElementById('txt-trust-level').textContent = s.trustLevel || 'HIGH TRUST';
+      document.getElementById('val-human-risk').textContent = `${s.humanRiskScore || 20}%`;
+      document.getElementById('txt-human-risk-cat').textContent = `${s.riskCategory || 'LOW'} RISK`;
+      document.getElementById('val-threat-prob').textContent = (s.compromiseProbability || 0.05).toFixed(2);
+      document.getElementById('val-active-alerts').textContent = s.activeAlerts || 0;
+
+      // Load Alerts
+      const alertsRes = await window.apiClient.get('/api/alerts');
+      const alerts = alertsRes.alerts || [];
+      const tblAlerts = document.getElementById('tbl-alerts-body');
+      if (alerts.length === 0) {
+        tblAlerts.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No active alerts. System healthy.</td></tr>`;
+      } else {
+        tblAlerts.innerHTML = alerts.slice(0, 5).map(a => `
+          <tr>
+            <td><span class="tag-severity tag-${a.severity}">${a.severity}</span></td>
+            <td>${a.title}</td>
+            <td><small style="color:var(--text-muted);">${a.sourceLayer}</small></td>
+            <td><strong>${a.status}</strong></td>
+          </tr>
+        `).join('');
+      }
+
+      // Load Events
+      const eventsRes = await window.apiClient.get('/api/events');
+      const events = eventsRes.events || [];
+      const tblEvents = document.getElementById('tbl-events-body');
+      if (events.length === 0) {
+        tblEvents.innerHTML = `<tr><td colspan="4" style="text-align: center; color: var(--text-muted);">No recent events recorded.</td></tr>`;
+      } else {
+        tblEvents.innerHTML = events.slice(0, 5).map(e => `
+          <tr>
+            <td><small>${new Date(e.timestamp).toLocaleTimeString()}</small></td>
+            <td>${e.eventType}</td>
+            <td><small style="color:var(--text-muted);">${e.sourceLayer}</small></td>
+            <td><span class="tag-severity tag-${e.severity}">${e.severity}</span></td>
+          </tr>
+        `).join('');
+      }
+    } catch (e) {
+      console.warn('Dashboard load error:', e.message);
+    }
+  }
+
+  document.getElementById('btn-run-sim').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-run-sim');
+    btn.disabled = true;
+    btn.textContent = '⏳ RUNNING SIMULATION...';
+    try {
+      await window.apiClient.post('/api/simulations/run', { iterations: 1000 });
+      alert('Complete 10-Step NeuroShield Simulation completed successfully!');
+      loadDashboardData();
+    } catch (e) {
+      alert('Simulation error: ' + e.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ RUN COMPLETE NEUROSHIELD SIMULATION';
+    }
+  });
+
+  loadDashboardData();
+</script>
+</body>
+</html>

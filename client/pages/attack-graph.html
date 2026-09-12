@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .graph-controls {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .legend-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      background: rgba(18, 23, 34, 0.9);
+      border: 1px solid var(--border-color);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+    .mitre-badge {
+      display: inline-block;
+      background: rgba(0, 240, 255, 0.12);
+      border: 1px solid var(--accent-cyan);
+      color: var(--accent-cyan);
+      font-size: 10px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+    <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary);">Interactive Cyber Attack Graph</h1>
+    <div style="display: flex; gap: 8px;">
+      <button id="btn-propagate-attack" class="btn btn-primary" style="font-size: 12px; padding: 8px 16px;">⚡ SIMULATE ATTACK PROPAGATION</button>
+      <button id="btn-reset-graph" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px;">🔄 RESET GRAPH</button>
+    </div>
+  </div>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+    Dynamic cyber attack dependency graph with draggable nodes, MITRE ATT&CK mapping, and animated Markov threat path propagation.
+  </p>
+
+  <div class="glass-panel" style="padding: 20px;">
+    <div class="graph-controls">
+      <div style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Drag nodes to rearrange topology. Click to inspect assets.</div>
+      <div class="legend-chip"><span class="legend-dot" style="background: #00e676; box-shadow: 0 0 6px #00e676;"></span> SAFE</div>
+      <div class="legend-chip"><span class="legend-dot" style="background: #ffb703; box-shadow: 0 0 6px #ffb703;"></span> SUSPICIOUS</div>
+      <div class="legend-chip"><span class="legend-dot" style="background: #ff3366; box-shadow: 0 0 8px #ff3366;"></span> COMPROMISED / BOTTLENECK</div>
+    </div>
+
+    <!-- HTML5 Canvas Visualizer -->
+    <div style="position: relative; width: 100%;">
+      <canvas id="attack-graph-canvas" width="1120" height="440" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; background: radial-gradient(circle at center, #101624 0%, #080b11 100%); cursor: grab;"></canvas>
+    </div>
+
+    <!-- Node Detail Inspector -->
+    <div id="node-details" style="margin-top: 16px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; font-size: 12px; color: var(--text-secondary);">
+      <div style="color: var(--text-muted);">Click on any node in the graph above to inspect asset vulnerability details, MITRE ATT&CK techniques, and zero-trust controls.</div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  const canvas = document.getElementById('attack-graph-canvas');
+  const ctx = canvas.getContext('2d');
+
+  let nodes = [
+    { id: 'N-USER', name: 'User Identity', x: 80, y: 220, risk: 25, status: 'SAFE', type: 'USER', mitre: 'T1566', cve: 'N/A', mitigation: 'FIDO2 WebAuthn MFA' },
+    { id: 'N-INIT', name: 'Workstation Gateway', x: 250, y: 130, risk: 35, status: 'SAFE', type: 'INITIAL_ACCESS', mitre: 'T1059', cve: 'CVE-2024-21413', mitigation: 'AppLocker & EDR' },
+    { id: 'N-END', name: 'Endpoint PC', x: 420, y: 220, risk: 45, status: 'SAFE', type: 'ENDPOINT', mitre: 'T1003', cve: 'CVE-2023-36884', mitigation: 'Credential Guard' },
+    { id: 'N-CRED', name: 'Domain Cache Credentials', x: 590, y: 130, risk: 65, status: 'SAFE', type: 'CREDENTIAL', mitre: 'T1550', cve: 'N/A', mitigation: 'LAPS & Protected Users' },
+    { id: 'N-LAT', name: 'App Server', x: 760, y: 220, risk: 75, status: 'SAFE', type: 'LATERAL_ASSET', mitre: 'T1021', cve: 'CVE-2023-44487', mitigation: 'Microsegmentation' },
+    { id: 'N-PRIV', name: 'Domain Admin DC', x: 920, y: 130, risk: 85, status: 'SAFE', type: 'PRIVILEGE_ASSET', mitre: 'T1558', cve: 'CVE-2024-38077', mitigation: 'Tiered Admin & JIT' },
+    { id: 'N-CRIT', name: 'Vault Database', x: 1040, y: 220, risk: 95, status: 'SAFE', type: 'CRITICAL_ASSET', mitre: 'T1048', cve: 'N/A', mitigation: 'Zero-Trust Token Enclave' }
+  ];
+
+  let edges = [
+    { from: 'N-USER', to: 'N-INIT', prob: '0.85', vuln: 'Phishing (T1566)' },
+    { from: 'N-INIT', to: 'N-END', prob: '0.70', vuln: 'Remote Execution (T1059)' },
+    { from: 'N-END', to: 'N-CRED', prob: '0.65', vuln: 'LSASS Dump (T1003)' },
+    { from: 'N-CRED', to: 'N-LAT', prob: '0.50', vuln: 'Pass-the-Hash (T1550)' },
+    { from: 'N-LAT', to: 'N-PRIV', prob: '0.40', vuln: 'Kerberoasting (T1558)' },
+    { from: 'N-PRIV', to: 'N-CRIT', prob: '0.30', vuln: 'Admin Exfiltration (T1048)' }
+  ];
+
+  let pulseWave = { active: false, currentEdgeIndex: 0, progress: 0 };
+  let draggedNode = null;
+  let selectedNode = null;
+
+  async function loadGraphData() {
+    try {
+      const nodesRes = await window.apiClient.get('/api/attack-graph/nodes');
+      const edgesRes = await window.apiClient.get('/api/attack-graph/edges');
+
+      if (nodesRes.nodes && nodesRes.nodes.length > 0) {
+        // preserve coordinates
+        nodesRes.nodes.forEach((n, idx) => {
+          const match = nodes.find(old => old.id === n.nodeId);
+          if (match) {
+            match.status = n.status || match.status;
+            match.risk = n.risk || match.risk;
+          }
+        });
+      }
+    } catch (e) {
+      console.warn('Using seeded attack graph nodes:', e.message);
+    }
+  }
+
+  function drawGraph() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Draw grid lines for high-tech aesthetic
+    ctx.strokeStyle = 'rgba(38, 51, 77, 0.2)';
+    ctx.lineWidth = 1;
+    for (let x = 0; x < canvas.width; x += 40) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, canvas.height);
+      ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += 40) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(canvas.width, y);
+      ctx.stroke();
+    }
+
+    // Draw Edges
+    edges.forEach((edge, idx) => {
+      const srcNode = nodes.find(n => n.id === edge.from);
+      const tgtNode = nodes.find(n => n.id === edge.to);
+      if (srcNode && tgtNode) {
+        ctx.beginPath();
+        ctx.moveTo(srcNode.x, srcNode.y);
+        ctx.lineTo(tgtNode.x, tgtNode.y);
+
+        const isCompromisedPath = srcNode.status === 'COMPROMISED' && tgtNode.status === 'COMPROMISED';
+        ctx.strokeStyle = isCompromisedPath ? '#ff3366' : '#26334d';
+        ctx.lineWidth = isCompromisedPath ? 3 : 2;
+        ctx.stroke();
+
+        // Edge label
+        const midX = (srcNode.x + tgtNode.x) / 2;
+        const midY = (srcNode.y + tgtNode.y) / 2 - 8;
+        ctx.fillStyle = '#00f0ff';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`P=${edge.prob}`, midX, midY);
+
+        // Active Pulse Particle
+        if (pulseWave.active && pulseWave.currentEdgeIndex === idx) {
+          const px = srcNode.x + (tgtNode.x - srcNode.x) * pulseWave.progress;
+          const py = srcNode.y + (tgtNode.y - srcNode.y) * pulseWave.progress;
+          ctx.beginPath();
+          ctx.arc(px, py, 6, 0, 2 * Math.PI);
+          ctx.fillStyle = '#ff3366';
+          ctx.shadowColor = '#ff3366';
+          ctx.shadowBlur = 12;
+          ctx.fill();
+          ctx.shadowBlur = 0;
+        }
+      }
+    });
+
+    // Draw Nodes
+    nodes.forEach(node => {
+      ctx.beginPath();
+      ctx.arc(node.x, node.y, 22, 0, 2 * Math.PI);
+
+      let fillColor = '#00e676';
+      if (node.status === 'SUSPICIOUS') fillColor = '#ffb703';
+      if (node.status === 'COMPROMISED') fillColor = '#ff3366';
+
+      ctx.fillStyle = fillColor;
+      ctx.shadowColor = fillColor;
+      ctx.shadowBlur = node === selectedNode ? 18 : 8;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+
+      ctx.lineWidth = node === selectedNode ? 3 : 1.5;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // MITRE Tag above
+      ctx.fillStyle = '#00f0ff';
+      ctx.font = '9px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`[${node.mitre}]`, node.x, node.y - 28);
+
+      // Node Name below
+      ctx.fillStyle = '#f0f4fc';
+      ctx.font = 'bold 11px sans-serif';
+      ctx.fillText(node.name, node.x, node.y + 36);
+
+      // Risk score
+      ctx.fillStyle = '#8e9aaf';
+      ctx.font = '10px sans-serif';
+      ctx.fillText(`Risk: ${node.risk}`, node.x, node.y + 48);
+    });
+  }
+
+  function getMousePos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / rect.width;
+    const scaleY = canvas.height / rect.height;
+    return {
+      x: (e.clientX - rect.left) * scaleX,
+      y: (e.clientY - rect.top) * scaleY
+    };
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    const pos = getMousePos(e);
+    nodes.forEach(node => {
+      const dist = Math.sqrt((pos.x - node.x) ** 2 + (pos.y - node.y) ** 2);
+      if (dist <= 24) {
+        draggedNode = node;
+        selectedNode = node;
+        canvas.style.cursor = 'grabbing';
+        inspectNode(node);
+        drawGraph();
+      }
+    });
+  });
+
+  window.addEventListener('mousemove', (e) => {
+    if (draggedNode) {
+      const pos = getMousePos(e);
+      draggedNode.x = Math.max(30, Math.min(canvas.width - 30, pos.x));
+      draggedNode.y = Math.max(30, Math.min(canvas.height - 50, pos.y));
+      drawGraph();
+    }
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (draggedNode) {
+      draggedNode = null;
+      canvas.style.cursor = 'grab';
+    }
+  });
+
+  function inspectNode(node) {
+    document.getElementById('node-details').innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 14px; font-weight: 700; color: var(--accent-cyan);">${node.name} (${node.id})</span>
+        <span class="tag-severity tag-${node.status}">${node.status}</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; font-size: 12px;">
+        <div><strong>Asset Type:</strong> ${node.type}</div>
+        <div><strong>Compromise Risk:</strong> ${node.risk}/100</div>
+        <div><strong>MITRE ATT&CK:</strong> <span class="mitre-badge">${node.mitre}</span></div>
+        <div><strong>Known Exploit:</strong> ${node.cve}</div>
+      </div>
+      <div style="margin-top: 10px; font-size: 12px;">
+        <strong>Zero-Trust Countermeasure:</strong> <span style="color: var(--accent-green);">${node.mitre ? node.mitigation : 'Multi-Factor Enforcement'}</span>
+      </div>
+    `;
+  }
+
+  // Animate attack propagation
+  document.getElementById('btn-propagate-attack').addEventListener('click', () => {
+    const btn = document.getElementById('btn-propagate-attack');
+    btn.disabled = true;
+    pulseWave.active = true;
+    pulseWave.currentEdgeIndex = 0;
+    pulseWave.progress = 0;
+
+    // Reset nodes to safe
+    nodes.forEach(n => n.status = 'SAFE');
+    nodes[0].status = 'SUSPICIOUS';
+
+    function stepAnimation() {
+      pulseWave.progress += 0.05;
+      if (pulseWave.progress >= 1.0) {
+        pulseWave.progress = 0;
+        const currentEdge = edges[pulseWave.currentEdgeIndex];
+        if (currentEdge) {
+          const tgt = nodes.find(n => n.id === currentEdge.to);
+          if (tgt) tgt.status = 'COMPROMISED';
+        }
+        pulseWave.currentEdgeIndex++;
+
+        if (pulseWave.currentEdgeIndex >= edges.length) {
+          pulseWave.active = false;
+          btn.disabled = false;
+          drawGraph();
+          return;
+        }
+      }
+      drawGraph();
+      if (pulseWave.active) {
+        requestAnimationFrame(stepAnimation);
+      }
+    }
+
+    requestAnimationFrame(stepAnimation);
+  });
+
+  // Reset Graph
+  document.getElementById('btn-reset-graph').addEventListener('click', () => {
+    pulseWave.active = false;
+    nodes.forEach(n => n.status = 'SAFE');
+    nodes[2].status = 'SUSPICIOUS';
+    nodes[3].status = 'SUSPICIOUS';
+    drawGraph();
+  });
+
+  loadGraphData().then(drawGraph);
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+{
+  "name": "neuroshield-desktop",
+  "version": "1.0.0",
+  "description": "NeuroShield Desktop Cybersecurity Software - Continuous Adaptive Security System",
+  "main": "electron/main.js",
+  "scripts": {
+    "start": "node server/server.js",
+    "dev": "electron .",
+    "electron": "electron .",
+    "test": "jest --runInBand --detectOpenHandles --forceExit --runTestsByPath tests/algorithms/behavior.test.js tests/algorithms/humanRisk.test.js tests/algorithms/threat.test.js tests/algorithms/trust.test.js tests/api/api.test.js",
+    "seed": "node scripts/seed.js",
+    "dist": "electron-builder --win nsis"
+  },
+  "jest": {
+    "setupFiles": [
+      "<rootDir>/tests/jest.setup.js"
+    ]
+  },
+  "keywords": [
+    "cybersecurity",
+    "electron",
+    "zero-trust",
+    "behavioral-biometrics",
+    "adaptive-trust",
+    "threat-simulation",
+    "deception",
+    "mongodb"
+  ],
+  "author": "NeuroShield Engineering Team",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.0.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.10.1",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1"
+  },
+  "devDependencies": {
+    "electron": "^34.2.0",
+    "electron-builder": "^25.1.8",
+    "jest": "^29.7.0",
+    "mongodb-memory-server": "^10.1.4",
+    "supertest": "^7.0.0"
+  },
+  "build": {
+    "appId": "com.neuroshield.desktop",
+    "productName": "NeuroShield",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron/**/*",
+      "server/**/*",
+      "client/**/*",
+      "assets/**/*",
+      "package.json",
+      "!node_modules/electron/**/*",
+      "!node_modules/electron-builder/**/*",
+      "!tests/**/*",
+      "!docs/**/*"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icons/icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "NeuroShield"
+    }
+  },
+  "allowScripts": {
+    "electron@34.5.8": true,
+    "mongodb-memory-server@10.4.3": true
+  }
+}

@@ -1,0 +1,16 @@
+# NeuroShield Research Traceability Matrix
+
+This matrix maps the conceptual foundation from academic cybersecurity research directly to implementation components across the **NeuroShield** repository.
+
+| Research Concept / Pillar | Implementation Layer / Subsystem | Mathematical Algorithm / Model | Mongoose Database Schema | Express REST API Endpoint | Desktop / Web UI View | Automated Test Suite |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **1. Behavioral Identity** | `server/engines/behavior/`, `client/js/biometrics.js` | K-Means Centroid Distance, One-Class SVM (RBF), Random Forest Ensemble | `BehaviorProfile.js`, `BehaviorEvent.js` | `POST /api/behavior/telemetry`, `POST /api/behavior/profile` | `client/pages/behavior.html` | `tests/algorithms/behavior.test.js` |
+| **2. Adaptive Trust** | `server/engines/trust/` | Multi-Factor Context Weighting, Mamdani Fuzzy Inference Rules, RBA Policy | `TrustScore.js` | `POST /api/trust/evaluate` | `client/pages/trust.html` | `tests/algorithms/trust.test.js` |
+| **3. Human Risk Prediction** | `server/engines/humanRisk/` | Decision Trees, Logistic Regression (Logit), Bayesian Posterior Update | `HumanRisk.js` | `GET /api/human-risk/current/:id` | `client/pages/human-risk.html` | `tests/algorithms/humanRisk.test.js` |
+| **4. Predictive Threat Simulation** | `server/engines/threat/` | 7-State Stochastic Markov Chain, Monte Carlo Random-Walk Simulator | `ThreatPrediction.js`, `ThreatSimulation.js` | `POST /api/threats/predict`, `POST /api/simulations/run` | `client/pages/threat-prediction.html`, `simulations.html` | `tests/algorithms/threat.test.js` |
+| **5. Intelligent Deception** | `server/engines/deception/` | Honeypots, Honeytokens, Decoy Traps & Interaction Analysis | `DeceptionAsset.js`, `DeceptionEvent.js` | `POST /api/deception/trigger` | `client/pages/deception.html` | `tests/api/api.test.js` |
+| **Feedback Loop Pipeline** | `server/services/securityEventService.js` | Interconnected 5-Layer Feedback Routing & Recalculation | `SecurityEvent.js`, `Alert.js`, `AuditLog.js` | `GET /api/events`, `GET /api/alerts` | `client/pages/dashboard.html`, `alerts.html` | `tests/api/api.test.js` |
+| **System Event Auditing** | `server/services/systemAuditorService.js` | CPU/RAM Resource Anomaly Scoring Heuristic | N/A (Live OS Telemetry) | `GET /api/auditing/system` | `client/pages/endpoint-audit.html` | `tests/api/api.test.js` |
+| **File Integrity Monitoring (FIM)** | `server/services/fimService.js` | SHA-256 Cryptographic Hash Verification & Canary Watcher | N/A (Canary Vault Filesystem) | `GET /api/auditing/fim`, `POST /api/auditing/fim/trip` | `client/pages/endpoint-audit.html` | `tests/api/api.test.js` |
+| **Network & DNS Auditing** | `server/services/networkAuditorService.js` | Defense Surface Port Audit & DNS Resolution Latency | N/A (Socket/DNS Telemetry) | `GET /api/auditing/network` | `client/pages/endpoint-audit.html` | `tests/api/api.test.js` |
+| **Executive ZTA Reporting** | `server/routes/reports.js` | NIST SP 800-207 Zero-Trust Pillar Mapping & Export | `SecurityEvent.js`, `Alert.js`, `TrustScore.js` | `GET /api/reports/export/csv`, `GET /api/reports/export/json` | `client/pages/reports.html` | `tests/api/api.test.js` |

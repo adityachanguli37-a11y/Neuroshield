@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .meter-circle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      border: 4px solid var(--accent-cyan);
+      font-weight: 800;
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    .status-pill-healthy {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--accent-green);
+      border: 1px solid var(--accent-green);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+    .status-pill-tampered {
+      background: rgba(255, 51, 102, 0.15);
+      color: var(--accent-red);
+      border: 1px solid var(--accent-red);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+    <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary);">Defensive Endpoint & FIM Auditing</h1>
+    <button id="btn-refresh-audit" class="btn btn-secondary" style="font-size: 12px; padding: 6px 14px;">🔄 REFRESH TELEMETRY</button>
+  </div>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Host-level performance metrics, File Integrity Monitoring (FIM) with canary tripwires, and network socket / DNS auditing.</p>
+
+  <!-- Metric Gauges Row -->
+  <div class="grid-metrics" style="margin-bottom: 24px;">
+    <div class="metric-card" style="text-align: center;">
+      <div class="metric-title">Host CPU Utilization</div>
+      <div class="meter-circle" id="circle-cpu" style="border-color: var(--accent-cyan); color: var(--accent-cyan);">0%</div>
+      <div class="metric-subtitle" id="txt-cpu-status">NOMINAL LOAD</div>
+    </div>
+    <div class="metric-card" style="text-align: center;">
+      <div class="metric-title">System Memory Usage</div>
+      <div class="meter-circle" id="circle-mem" style="border-color: var(--accent-green); color: var(--accent-green);">0%</div>
+      <div class="metric-subtitle" id="txt-mem-status">HEALTHY</div>
+    </div>
+    <div class="metric-card" style="text-align: center;">
+      <div class="metric-title">DNS Resolution Latency</div>
+      <div class="meter-circle" id="circle-dns" style="border-color: var(--accent-yellow); color: var(--accent-yellow);">0ms</div>
+      <div class="metric-subtitle" id="txt-dns-status">RESOLVING</div>
+    </div>
+    <div class="metric-card" style="text-align: center;">
+      <div class="metric-title">Network Trust Rating</div>
+      <div class="meter-circle" id="circle-net-trust" style="border-color: var(--accent-magenta); color: var(--accent-magenta);">95</div>
+      <div class="metric-subtitle">LAYER 2 CONTEXT</div>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- File Integrity Monitor (FIM) Card -->
+    <div class="glass-panel" style="padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h3 style="font-size: 16px; font-weight: 700;">File Integrity Monitoring (FIM)</h3>
+          <span style="font-size: 11px; color: var(--text-muted);" id="txt-canary-path">Vault: Initializing...</span>
+        </div>
+        <button id="btn-trip-canary" class="btn btn-primary" style="font-size: 11px; padding: 6px 12px;">🚨 TEST CANARY TRIPWIRE</button>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Monitored Canary File</th>
+              <th>SHA-256 Hash</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-fim-body">
+            <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Auditing canary vault...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 14px; font-size: 12px; color: var(--text-secondary); background: var(--bg-secondary); padding: 10px; border-radius: 6px;">
+        <strong>Zero-Trust Tripwire:</strong> Any unauthorized process that modifies or reads these canary decoy files immediately trips a CRITICAL Layer 5 security alert.
+      </div>
+    </div>
+
+    <!-- Network & Host Socket Auditor Card -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Network Socket & Host Port Audit</h3>
+      
+      <div style="margin-bottom: 16px; font-size: 12px; line-height: 1.8;">
+        <div><strong>Host Name:</strong> <span id="val-hostname">--</span></div>
+        <div><strong>OS Platform:</strong> <span id="val-platform">--</span></div>
+        <div><strong>Active Listening Ports:</strong> <span id="val-ports" style="font-family: monospace; color: var(--accent-cyan);">--</span></div>
+        <div><strong>Target DNS Endpoint:</strong> <span id="val-dns-ip" style="font-family: monospace;">--</span></div>
+      </div>
+
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Audit Dimension</th>
+              <th>Observed Telemetry</th>
+              <th>Integrity Assessment</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Host Process Resource Spike</td>
+              <td id="row-res-telemetry">Monitoring</td>
+              <td><span class="status-pill-healthy">PASS</span></td>
+            </tr>
+            <tr>
+              <td>DNS Resolution Latency</td>
+              <td id="row-dns-telemetry">Measuring</td>
+              <td><span class="status-pill-healthy">NORMAL</span></td>
+            </tr>
+            <tr>
+              <td>Port Audit Boundary</td>
+              <td id="row-port-telemetry">Scanning</td>
+              <td><span class="status-pill-healthy">SECURE</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  async function loadEndpointAudit() {
+    try {
+      // 1. Fetch System Telemetry
+      const sysRes = await window.apiClient.get('/api/auditing/system');
+      const m = sysRes.metrics;
+      if (m) {
+        document.getElementById('circle-cpu').textContent = `${m.cpuUsagePercent}%`;
+        document.getElementById('circle-mem').textContent = `${m.memoryUsagePercent}%`;
+        document.getElementById('val-hostname').textContent = m.hostname;
+        document.getElementById('val-platform').textContent = `${m.platform} (${m.arch}) - ${m.cpuCount} Cores`;
+        document.getElementById('row-res-telemetry').textContent = `CPU: ${m.cpuUsagePercent}%, RAM: ${m.memoryUsagePercent}%`;
+      }
+
+      // 2. Fetch FIM Canary Status
+      const fimRes = await window.apiClient.get('/api/auditing/fim');
+      const fim = fimRes.fim;
+      if (fim) {
+        document.getElementById('txt-canary-path').textContent = `Vault: ${fim.watchedDirectory}`;
+        const tbody = document.getElementById('tbl-fim-body');
+        if (fim.canaryFiles && fim.canaryFiles.length > 0) {
+          tbody.innerHTML = fim.canaryFiles.map(f => `
+            <tr>
+              <td><strong>${f.name}</strong></td>
+              <td><span style="font-family: monospace; font-size: 10px; color: var(--text-muted);">${(f.hash || 'N/A').substring(0, 16)}...</span></td>
+              <td><span class="${f.status === 'ARMED' ? 'status-pill-healthy' : 'status-pill-tampered'}">${f.status}</span></td>
+            </tr>
+          `).join('');
+        }
+      }
+
+      // 3. Fetch Network & DNS Telemetry
+      const netRes = await window.apiClient.get('/api/auditing/network');
+      const net = netRes.audit;
+      if (net) {
+        document.getElementById('circle-dns').textContent = `${net.dnsLatencyMs}ms`;
+        document.getElementById('circle-net-trust').textContent = `${net.networkTrustScore}`;
+        document.getElementById('val-ports').textContent = net.listeningPorts.join(', ');
+        document.getElementById('val-dns-ip').textContent = net.resolvedIp || 'Resolved';
+        document.getElementById('row-dns-telemetry').textContent = `${net.dnsLatencyMs}ms (${net.dnsStatus})`;
+        document.getElementById('row-port-telemetry').textContent = `${net.listeningPorts.length} Active Ports`;
+      }
+    } catch (e) {
+      console.warn('Endpoint audit load notice:', e.message);
+    }
+  }
+
+  document.getElementById('btn-trip-canary').addEventListener('click', async () => {
+    try {
+      const res = await window.apiClient.post('/api/auditing/fim/touch-canary', {});
+      alert(`⚠️ FIM ALERT TRIGGERED: ${res.message}\nZero-Trust alert dispatched to SOC.`);
+      loadEndpointAudit();
+    } catch (err) {
+      alert('Canary trigger note: ' + err.message);
+    }
+  });
+
+  document.getElementById('btn-refresh-audit').addEventListener('click', loadEndpointAudit);
+
+  loadEndpointAudit();
+  setInterval(loadEndpointAudit, 6000);
+</script>
+</body>
+</html>

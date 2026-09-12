@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Layer 2: Adaptive Trust Engine</h1>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Multi-factor weighted trust aggregation (Behavior 40%, Device 20%, Location 15%, Network 15%, Time 10%) & Fuzzy Logic rules.</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Trust Score Matrix -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Contextual Scores & Weights</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Context Dimension</th>
+              <th>Weight</th>
+              <th>Score (0-100)</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Behavioral Biometrics</td><td><strong>40%</strong></td><td id="ts-behavior">85</td></tr>
+            <tr><td>Device Trust</td><td><strong>20%</strong></td><td id="ts-device">90</td></tr>
+            <tr><td>Geographic Location</td><td><strong>15%</strong></td><td id="ts-location">80</td></tr>
+            <tr><td>Network Security</td><td><strong>15%</strong></td><td id="ts-network">85</td></tr>
+            <tr><td>Temporal Context</td><td><strong>10%</strong></td><td id="ts-time">90</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="margin-top: 20px;" class="metric-card">
+        <div class="metric-title">Overall Adaptive Trust Score</div>
+        <div class="metric-value" id="val-trust-overall" style="color: var(--accent-green);">86.5/100</div>
+        <div class="metric-subtitle" id="txt-rba-action">RBA ACTION: NORMAL ACCESS</div>
+      </div>
+    </div>
+
+    <!-- Fuzzy Rules Table -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Fuzzy Logic Inference Rule Base</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Fuzzy Rule Description</th>
+              <th>Status</th>
+              <th>Weight</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-fuzzy-rules">
+            <tr><td>R1: If Behavior Low & Network Low -> CRITICAL RISK</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.95</td></tr>
+            <tr><td>R2: If Device Low & Location Low -> LOW TRUST</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.85</td></tr>
+            <tr><td>R3: If Behavior High & Device High -> HIGH TRUST</td><td><span class="tag-severity tag-LOW" style="background:rgba(0,230,118,0.2);color:var(--accent-green);">TRUE</span></td><td>0.90</td></tr>
+            <tr><td>R4: If Behavior Medium or Network Medium -> MEDIUM TRUST</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.70</td></tr>
+            <tr><td>R5: If Time Low & Location Low -> ELEVATED RISK</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.80</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  async function loadTrustData() {
+    try {
+      const user = JSON.parse(localStorage.getItem('neuroshield_user_info') || '{}');
+      const res = await window.apiClient.get(`/api/trust/current/${user._id || 'demo'}`);
+      const t = res.trustScore;
+      if (t) {
+        document.getElementById('ts-behavior').textContent = t.behaviorScore;
+        document.getElementById('ts-device').textContent = t.deviceScore;
+        document.getElementById('ts-location').textContent = t.locationScore;
+        document.getElementById('ts-network').textContent = t.networkScore;
+        document.getElementById('ts-time').textContent = t.timeScore;
+        document.getElementById('val-trust-overall').textContent = `${t.overallTrust}/100`;
+        document.getElementById('txt-rba-action').textContent = `RBA ACTION: ${t.authenticationAction} (${t.trustLevel})`;
+
+        if (t.fuzzyRules && t.fuzzyRules.length > 0) {
+          const tbody = document.getElementById('tbl-fuzzy-rules');
+          tbody.innerHTML = t.fuzzyRules.map(r => `
+            <tr>
+              <td>${r.rule}</td>
+              <td><strong>${r.triggered ? '<span class="tag-severity tag-CRITICAL">TRIGGERED</span>' : '<span class="tag-severity tag-LOW">PASS</span>'}</strong></td>
+              <td>${r.weight}</td>
+            </tr>
+          `).join('');
+        }
+      }
+    } catch (e) {
+      console.warn('Trust load note:', e.message);
+    }
+  }
+
+  loadTrustData();
+</script>
+</body>
+</html>

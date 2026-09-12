@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroShield - SOC Desktop Dashboard</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/components.css">
+</head>
+<body>
+
+<div class="dashboard-container">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon">NS</div>
+      <div class="brand-title">NEUROSHIELD</div>
+    </div>
+
+    <nav class="sidebar-menu">
+      <div class="menu-category">Overview</div>
+      <div class="nav-item active" data-page="pages/dashboard.html">
+        <span>SOC Overview</span>
+      </div>
+
+      <div class="menu-category">Security Layers</div>
+      <div class="nav-item" data-page="pages/behavior.html">
+        <span>1. Behavioral Identity</span>
+      </div>
+      <div class="nav-item" data-page="pages/trust.html">
+        <span>2. Adaptive Trust</span>
+      </div>
+      <div class="nav-item" data-page="pages/human-risk.html">
+        <span>3. Human Risk Prediction</span>
+      </div>
+      <div class="nav-item" data-page="pages/threat-prediction.html">
+        <span>4. Threat Simulation</span>
+      </div>
+      <div class="nav-item" data-page="pages/deception.html">
+        <span>5. Intelligent Deception</span>
+      </div>
+
+      <div class="menu-category">Analytics & Simulation</div>
+      <div class="nav-item" data-page="pages/attack-graph.html">
+        <span>Attack Graph</span>
+      </div>
+      <div class="nav-item" data-page="pages/simulations.html">
+        <span>Monte Carlo Sims</span>
+      </div>
+
+      <div class="menu-category">Operations</div>
+      <div class="nav-item" data-page="pages/alerts.html">
+        <span>Security Alerts</span>
+      </div>
+      <div class="nav-item" data-page="pages/events.html">
+        <span>Event Stream</span>
+      </div>
+      <div class="nav-item" data-page="pages/reports.html">
+        <span>Reports & Export</span>
+      </div>
+      <div class="nav-item" data-page="pages/endpoint-audit.html">
+        <span>Endpoint & FIM Audit</span>
+      </div>
+
+      <div class="menu-category">Administration</div>
+      <div class="nav-item" data-page="pages/users.html">
+        <span>User Access & RBAC</span>
+      </div>
+      <div class="nav-item" data-page="pages/audit.html">
+        <span>Audit Logs</span>
+      </div>
+      <div class="nav-item" data-page="pages/settings.html">
+        <span>System Settings</span>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Top Header -->
+    <header class="top-header">
+      <div class="status-badges">
+        <div id="db-status-badge" class="badge badge-online">
+          <span class="badge-status-dot"></span> MongoDB: Checking...
+        </div>
+        <div id="realtime-status-badge" class="badge badge-online">
+          <span class="badge-status-dot"></span> Realtime: Checking...
+        </div>
+        <div id="telemetry-hud-badge" class="badge" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc; font-family: monospace; font-size: 11px;" title="Real-time OS cursor velocity and application keystroke speed">
+          <span>⚡ Pointer: <strong id="top-pointer-speed">0</strong> px/s | Typing: <strong id="top-typing-wpm">0</strong> WPM</span>
+        </div>
+      </div>
+
+      <div class="user-profile">
+        <div class="user-avatar" id="user-avatar-initials">AD</div>
+        <div>
+          <div id="user-display-name" style="font-weight: 600; font-size: 13px;">Administrator</div>
+          <div id="user-display-role" style="font-size: 11px; color: var(--accent-cyan);">ADMIN</div>
+        </div>
+        <button id="btn-logout" class="btn btn-secondary" style="padding: 6px 12px; margin-left: 12px;">Logout</button>
+      </div>
+    </header>
+
+    <!-- Subpage Frame -->
+    <iframe id="page-frame" src="pages/dashboard.html" style="width: 100%; height: calc(100vh - 60px); border: none; background: transparent; position: relative; z-index: 1;" tabindex="0"></iframe>
+  </main>
+</div>
+
+<!-- Floating Toast Container -->
+<div id="toast-container" style="position: fixed; top: 70px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 380px;"></div>
+
+<!-- Emergency Security Lockdown Modal -->
+<div id="lockdown-overlay" style="display: none; position: fixed; inset: 0; background: rgba(8, 11, 17, 0.96); backdrop-filter: blur(24px); z-index: 100000; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 24px;">
+  <div style="font-size: 54px; margin-bottom: 12px;">🚨</div>
+  <h2 style="color: var(--accent-red); font-size: 24px; font-weight: 800; letter-spacing: 2px;">ZERO-TRUST WORKSTATION LOCKDOWN</h2>
+  <p style="color: var(--text-secondary); max-width: 480px; margin: 12px 0 24px; font-size: 13px; line-height: 1.6;">
+    Workstation access suspended under Risk-Based Authentication (RBA) Policy. High risk anomaly detected or manual emergency lockdown triggered (Ctrl+Shift+L).
+  </p>
+  <div style="display: flex; gap: 12px; width: 360px;">
+    <input type="password" id="lock-pass" class="form-control" placeholder="Re-enter password to unlock..." style="flex: 1;">
+    <button id="btn-unlock" class="btn btn-primary">UNLOCK</button>
+  </div>
+  <div id="lock-err" style="color: #ff99b3; font-size: 12px; margin-top: 10px; display: none;">Invalid credentials.</div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/realtime.js"></script>
+<script src="js/biometrics.js"></script>
+<script>
+  // Toast Notification System
+  function showToast(title, message, severity = 'INFO') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.style.cssText = `
+      background: rgba(18, 23, 34, 0.95);
+      border-left: 4px solid ${severity === 'CRITICAL' ? 'var(--accent-red)' : severity === 'HIGH' ? 'var(--accent-yellow)' : 'var(--accent-cyan)'};
+      border-top: 1px solid var(--border-color);
+      border-right: 1px solid var(--border-color);
+      border-bottom: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px 18px;
+      color: #fff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      pointer-events: auto;
+      font-size: 12px;
+      transition: all 0.3s ease;
+      opacity: 0;
+      transform: translateX(30px);
+    `;
+
+    toast.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+        <strong style="color: ${severity === 'CRITICAL' ? 'var(--accent-red)' : 'var(--accent-cyan)'}; font-size: 13px;">${title}</strong>
+        <span class="tag-severity tag-${severity}">${severity}</span>
+      </div>
+      <div style="color: var(--text-secondary);">${message}</div>
+    `;
+
+    container.appendChild(toast);
+    requestAnimationFrame(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(0)';
+    });
+
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(30px)';
+      setTimeout(() => toast.remove(), 300);
+    }, 5000);
+
+    // Native Windows OS Notification
+    if (window.neuroshield && window.neuroshield.showNotification) {
+      window.neuroshield.showNotification({ title, body: message });
+    }
+  }
+
+  // Emergency Lockdown functions
+  function triggerLockdown() {
+    const overlay = document.getElementById('lockdown-overlay');
+    overlay.style.display = 'flex';
+    document.getElementById('lock-pass').value = '';
+    document.getElementById('lock-err').style.display = 'none';
+    document.getElementById('lock-pass').focus();
+    showToast('🚨 WORKSTATION LOCKDOWN', 'Zero-Trust emergency lock initiated.', 'CRITICAL');
+  }
+
+  document.getElementById('btn-unlock').addEventListener('click', async () => {
+    const pass = document.getElementById('lock-pass').value;
+    const user = window.authManager.getCurrentUser();
+    const email = (user && user.email) || 'admin@neuroshield.local';
+
+    try {
+      await window.authManager.login(email, pass);
+      document.getElementById('lockdown-overlay').style.display = 'none';
+      showToast('UNLOCKED', 'Workstation authentication verified. Access restored.', 'LOW');
+    } catch (e) {
+      const err = document.getElementById('lock-err');
+      err.style.display = 'block';
+      err.textContent = 'Invalid credentials. Please enter your authorized password.';
+    }
+  });
+
+  // Native hotkey trigger from Electron main process
+  if (window.neuroshield && window.neuroshield.onEmergencyLock) {
+    window.neuroshield.onEmergencyLock(() => {
+      triggerLockdown();
+    });
+  }
+
+  // Keyboard shortcut fallback inside browser
+  window.addEventListener('keydown', (e) => {
+    if (e.ctrlKey && e.shiftKey && (e.key === 'L' || e.key === 'l')) {
+      e.preventDefault();
+      triggerLockdown();
+    }
+  });
+
+  // Auth Verification
+  window.authManager.verifyAuth().then(valid => {
+    if (!valid) {
+      window.location.href = 'login.html';
+      return;
+    }
+    const user = window.authManager.getCurrentUser();
+    if (user) {
+      document.getElementById('user-display-name').textContent = user.name || user.email;
+      document.getElementById('user-display-role').textContent = user.role || 'EMPLOYEE';
+      document.getElementById('user-avatar-initials').textContent = (user.name || 'U').substring(0, 2).toUpperCase();
+    }
+  });
+
+  // Navigation click routing
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      item.classList.add('active');
+      const page = item.getAttribute('data-page');
+      document.getElementById('page-frame').src = page;
+    });
+  });
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    window.authManager.logout();
+  });
+
+  // Check health status badges
+  async function updateHealthBadges() {
+    try {
+      const baseUrl = await window.apiClient.getBaseUrl();
+      const res = await fetch(`${baseUrl}/api/health`, { credentials: 'include' });
+      const health = await res.json();
+      const dbBadge = document.getElementById('db-status-badge');
+      if (health.services && health.services.database === 'connected') {
+        const isEmbedded = health.services.databaseMode === 'embedded';
+        dbBadge.className = 'badge badge-online';
+        dbBadge.innerHTML = `<span class="badge-status-dot"></span> Database: ${isEmbedded ? 'Ready (Local)' : 'Connected (Atlas)'}`;
+      } else {
+        dbBadge.className = 'badge badge-offline';
+        dbBadge.innerHTML = '<span class="badge-status-dot"></span> Database: Offline';
+      }
+    } catch (e) {
+      const dbBadge = document.getElementById('db-status-badge');
+      dbBadge.className = 'badge badge-offline';
+      dbBadge.innerHTML = '<span class="badge-status-dot"></span> Database: Offline';
+    }
+  }
+
+  setInterval(updateHealthBadges, 5000);
+  updateHealthBadges();
+
+  // Attach telemetry listeners to subpage iframe
+  const frame = document.getElementById('page-frame');
+  function attachToSubframe() {
+    try {
+      if (frame && frame.contentWindow && window.biometricsCollector) {
+        window.biometricsCollector.attachToContainer(frame.contentWindow);
+        if (frame.contentDocument) {
+          window.biometricsCollector.attachToContainer(frame.contentDocument);
+        }
+      }
+    } catch (e) {}
+  }
+  if (frame) {
+    frame.addEventListener('load', attachToSubframe);
+    attachToSubframe();
+  }
+
+  // Update OS pointer and typing speed ticker
+  setInterval(async () => {
+    if (window.biometricsCollector) {
+      if (window.biometricsCollector.updateOsPointerSpeed) {
+        await window.biometricsCollector.updateOsPointerSpeed();
+      }
+      const t = window.biometricsCollector.getLiveTelemetry();
+      const pointerEl = document.getElementById('top-pointer-speed');
+      const typingEl = document.getElementById('top-typing-wpm');
+      if (pointerEl) {
+        pointerEl.textContent = (t.osInstantSpeed > 0 ? t.osInstantSpeed : (t.appMouseVelocity > 0 ? t.appMouseVelocity : 0));
+      }
+      if (typingEl) {
+        typingEl.textContent = (t.instantWpm > 0 ? t.instantWpm : 0);
+      }
+    }
+  }, 250);
+
+  // Socket.IO Realtime Event Handlers
+  window.realtimeClient.init().then(() => {
+    window.realtimeClient.on('alert:new', (alert) => {
+      showToast(alert.title || 'Security Alert', alert.description || 'New security event recorded.', alert.severity || 'HIGH');
+    });
+
+    window.realtimeClient.on('simulation:complete', (sim) => {
+      showToast('⚡ Simulation Executed', `Complete 10-step simulation ${sim.simulationId} completed.`, 'LOW');
+    });
+
+    window.realtimeClient.on('deception:trigger', (dec) => {
+      showToast('🚨 Honeypot Triggered', `Decoy asset ${dec.assetId} accessed! Zero-trust alert generated.`, 'CRITICAL');
+    });
+
+    window.realtimeClient.on('fim:alert', (fim) => {
+      showToast('🚨 FIM CANARY COMPROMISE', `File Integrity Monitor tripped: Canary file '${fim.filename}' was ${fim.eventType} on host!`, 'CRITICAL');
+    });
+  }).catch(error => console.warn('Realtime connection note:', error.message));
+</script>
+</body>
+</html>

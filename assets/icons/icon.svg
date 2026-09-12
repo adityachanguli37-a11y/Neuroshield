@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="NeuroShield">
+  <defs>
+    <linearGradient id="shield" x1="34" y1="25" x2="220" y2="228" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#21d4d8"/>
+      <stop offset="1" stop-color="#e24090"/>
+    </linearGradient>
+    <linearGradient id="core" x1="92" y1="78" x2="167" y2="179" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#f4ffff"/>
+      <stop offset="1" stop-color="#7df5ec"/>
+    </linearGradient>
+  </defs>
+  <rect width="256" height="256" rx="54" fill="#09111d"/>
+  <path d="M128 27 211 61v58c0 51-31 91-83 111-52-20-83-60-83-111V61l83-34Z" fill="url(#shield)"/>
+  <path d="M128 49 190 75v42c0 37-21 68-62 86-41-18-62-49-62-86V75l62-26Z" fill="#101b2d"/>
+  <path d="M91 99c19-23 55-23 74 0M91 157c19 23 55 23 74 0" fill="none" stroke="url(#core)" stroke-linecap="round" stroke-width="12"/>
+  <circle cx="128" cy="128" r="18" fill="url(#core)"/>
+  <circle cx="128" cy="128" r="7" fill="#09111d"/>
+</svg>

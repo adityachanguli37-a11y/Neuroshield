@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body {
+      padding: 24px;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+
+    .settings-shell {
+      max-width: 1240px;
+      margin: 0 auto;
+    }
+
+    .settings-header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+
+    .settings-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .settings-subtitle {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
+
+    .detail-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(38, 51, 77, 0.4);
+      align-items: flex-start;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--text-secondary);
+      font-size: 13px;
+      min-width: 140px;
+    }
+
+    .detail-value {
+      color: var(--text-primary);
+      font-size: 13px;
+      font-weight: 600;
+      text-align: right;
+      word-break: break-word;
+    }
+
+    .runtime-message {
+      margin-top: 14px;
+      padding: 12px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: rgba(18, 23, 34, 0.85);
+      color: var(--text-secondary);
+      min-height: 48px;
+      line-height: 1.55;
+    }
+
+    .runtime-message.info {
+      border-color: rgba(0, 240, 255, 0.25);
+      background: rgba(0, 240, 255, 0.06);
+    }
+
+    .runtime-message.success {
+      border-color: rgba(0, 230, 118, 0.35);
+      background: rgba(0, 230, 118, 0.08);
+      color: var(--accent-green);
+    }
+
+    .runtime-message.error {
+      border-color: rgba(255, 51, 102, 0.55);
+      background: rgba(255, 51, 102, 0.08);
+      color: #ff99b3;
+    }
+
+    .helper-copy {
+      margin-top: 10px;
+      font-size: 12px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+
+    .button-row .btn {
+      flex: 1 1 160px;
+    }
+
+    .admin-note {
+      margin-bottom: 16px;
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-shell">
+    <div class="settings-header">
+      <div>
+        <div class="settings-title">NeuroShield System Settings & Health</div>
+        <div class="settings-subtitle">Inspect desktop process status, runtime storage, and the active MongoDB connection.</div>
+      </div>
+      <div id="txt-access-role" class="tag-severity tag-MEDIUM">CHECKING ACCESS</div>
+    </div>
+
+    <div class="settings-grid">
+      <div class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Service Diagnostics</h3>
+        <div class="detail-list">
+          <div class="detail-row">
+            <span class="detail-label">Application Version</span>
+            <span class="detail-value">1.0.0 Desktop</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">API Endpoint Base URL</span>
+            <code id="txt-api-url" class="detail-value">Loading...</code>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Runtime Config File</span>
+            <code id="txt-runtime-path" class="detail-value">Admin only</code>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">MongoDB Atlas Status</span>
+            <span id="txt-db-status" class="tag-severity tag-MEDIUM">CHECKING</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Socket.IO Realtime Pipeline</span>
+            <span id="txt-realtime-status" class="tag-severity tag-MEDIUM">CHECKING</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Electron Context Isolation</span>
+            <span class="tag-severity tag-LOW">ENABLED</span>
+          </div>
+        </div>
+
+        <button id="btn-refresh" class="btn btn-secondary" style="width: 100%; margin-top: 16px;">Refresh Diagnostics</button>
+      </div>
+
+      <div class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 10px;">Runtime Configuration</h3>
+        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px;">
+          Save a new MongoDB connection string directly from the installed app. The backend writes it to the runtime config file and reconnects immediately.
+        </p>
+
+        <div id="admin-note" class="runtime-message info admin-note">
+          ADMIN access is required to change runtime settings.
+        </div>
+
+        <form id="runtime-form">
+          <div class="form-group">
+            <label for="mongodb-uri">MongoDB URI</label>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">
+              Current value: <code id="txt-mongo-uri">Not configured</code>
+            </div>
+            <input
+              id="mongodb-uri"
+              class="form-control"
+              type="password"
+              placeholder="mongodb+srv://username:password@cluster.example.mongodb.net/neuroshield"
+              autocomplete="off"
+              spellcheck="false"
+            >
+          </div>
+
+          <div class="helper-copy">
+            The field is intentionally blank by default. Paste a replacement URI only when you want to update the installed desktop build.
+          </div>
+
+          <div id="runtime-message" class="runtime-message info">
+            No runtime changes saved yet.
+          </div>
+
+          <div class="button-row">
+            <button id="btn-save" type="submit" class="btn btn-primary">Save and Reconnect</button>
+            <button id="btn-clear" type="button" class="btn btn-secondary">Clear Field</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/auth.js"></script>
+  <script>
+    const runtimeState = {
+      isAdmin: false
+    };
+
+    function setBadge(element, state, okText, badText) {
+      if (state) {
+        element.className = 'tag-severity tag-LOW';
+        element.textContent = okText;
+      } else {
+        element.className = 'tag-severity tag-CRITICAL';
+        element.textContent = badText;
+      }
+    }
+
+    function setRuntimeMessage(message, kind = 'info') {
+      const messageBox = document.getElementById('runtime-message');
+      messageBox.className = `runtime-message ${kind}`;
+      messageBox.textContent = message;
+    }
+
+    function setAdminAccess(isAdmin) {
+      runtimeState.isAdmin = Boolean(isAdmin);
+      const accessBadge = document.getElementById('txt-access-role');
+      const adminNote = document.getElementById('admin-note');
+      const input = document.getElementById('mongodb-uri');
+      const saveButton = document.getElementById('btn-save');
+      const clearButton = document.getElementById('btn-clear');
+
+      if (runtimeState.isAdmin) {
+        accessBadge.className = 'tag-severity tag-LOW';
+        accessBadge.textContent = 'ADMIN ACCESS';
+        adminNote.style.display = 'none';
+        input.disabled = false;
+        saveButton.disabled = false;
+        clearButton.disabled = false;
+      } else {
+        accessBadge.className = 'tag-severity tag-MEDIUM';
+        accessBadge.textContent = 'READ ONLY';
+        adminNote.style.display = 'block';
+        input.disabled = true;
+        saveButton.disabled = true;
+        clearButton.disabled = true;
+        setRuntimeMessage('Switch to an ADMIN account to edit runtime settings.', 'info');
+      }
+    }
+
+    async function loadHealth() {
+      const apiUrl = document.getElementById('txt-api-url');
+      const dbStatus = document.getElementById('txt-db-status');
+      const realtimeStatus = document.getElementById('txt-realtime-status');
+
+      apiUrl.textContent = await window.apiClient.getBaseUrl();
+
+      try {
+        const health = await window.apiClient.get('/api/health');
+        setBadge(dbStatus, health.services && health.services.database === 'connected', 'CONNECTED', 'OFFLINE');
+
+        if (health.services && health.services.realtime === 'connected') {
+          realtimeStatus.className = 'tag-severity tag-LOW';
+          realtimeStatus.textContent = 'CONNECTED';
+        } else {
+          realtimeStatus.className = 'tag-severity tag-MEDIUM';
+          realtimeStatus.textContent = 'DISCONNECTED';
+        }
+      } catch (err) {
+        dbStatus.className = 'tag-severity tag-CRITICAL';
+        dbStatus.textContent = 'OFFLINE';
+        realtimeStatus.className = 'tag-severity tag-CRITICAL';
+        realtimeStatus.textContent = 'OFFLINE';
+      }
+    }
+
+    async function loadRuntimeSettings() {
+      const runtimePath = document.getElementById('txt-runtime-path');
+      const maskedUri = document.getElementById('txt-mongo-uri');
+      const input = document.getElementById('mongodb-uri');
+
+      setAdminAccess(window.authManager.hasRole('ADMIN'));
+
+      if (!runtimeState.isAdmin) {
+        runtimePath.textContent = 'Admin only';
+        maskedUri.textContent = 'Not available';
+        input.placeholder = 'Admin access required';
+        return;
+      }
+
+      try {
+        const res = await window.apiClient.get('/api/settings/runtime');
+        runtimePath.textContent = res.runtimeConfig.runtimeConfigPath || 'Unknown';
+        maskedUri.textContent = res.runtimeConfig.maskedMongoUri || 'Not configured';
+
+        input.placeholder = res.runtimeConfig.mongoUriConfigured
+          ? 'Enter a replacement MongoDB URI to overwrite the current value'
+          : 'mongodb+srv://username:password@cluster.example.mongodb.net/neuroshield';
+
+        setRuntimeMessage(res.database.connected
+          ? 'Runtime configuration loaded. MongoDB is connected.'
+          : 'Runtime configuration loaded, but MongoDB is currently offline.', res.database.connected ? 'success' : 'error');
+      } catch (err) {
+        runtimePath.textContent = 'Unavailable';
+        maskedUri.textContent = 'Unavailable';
+
+        if (/Access denied|Unauthorized/i.test(err.message)) {
+          setAdminAccess(false);
+        } else {
+          setRuntimeMessage(err.message, 'error');
+        }
+      }
+    }
+
+    async function refreshPage() {
+      await Promise.all([
+        loadHealth(),
+        loadRuntimeSettings()
+      ]);
+    }
+
+    document.getElementById('btn-refresh').addEventListener('click', refreshPage);
+
+    document.getElementById('btn-clear').addEventListener('click', () => {
+      document.getElementById('mongodb-uri').value = '';
+      if (runtimeState.isAdmin) {
+        setRuntimeMessage('Field cleared. The saved runtime value is unchanged until you submit a new URI.', 'info');
+      }
+    });
+
+    document.getElementById('runtime-form').addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (!runtimeState.isAdmin) {
+        setRuntimeMessage('ADMIN privileges are required to save runtime settings.', 'error');
+        return;
+      }
+
+      const input = document.getElementById('mongodb-uri');
+      const saveButton = document.getElementById('btn-save');
+      const mongodbUri = input.value.trim();
+
+      if (!mongodbUri) {
+        setRuntimeMessage('Paste a MongoDB URI before saving.', 'error');
+        return;
+      }
+
+      saveButton.disabled = true;
+      setRuntimeMessage('Saving runtime configuration and reconnecting MongoDB...', 'info');
+
+      try {
+        const res = await window.apiClient.put('/api/settings/runtime', { mongodbUri });
+        input.value = '';
+        setRuntimeMessage(res.message, res.database.connected ? 'success' : 'error');
+        await refreshPage();
+      } catch (err) {
+        setRuntimeMessage(err.message, 'error');
+      } finally {
+        saveButton.disabled = !runtimeState.isAdmin;
+      }
+    });
+
+    refreshPage();
+  </script>
+</body>
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">User Accounts & Role-Based Access Control (RBAC)</h1>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Enforce strict server-side authorization across ADMIN, SECURITY_ANALYST, EMPLOYEE, and AUDITOR roles.</p>
+
+  <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px;">
+    <div class="metric-card">
+      <div class="metric-title">TOTAL IDENTITIES</div>
+      <div class="metric-value" id="kpi-total-users" style="color: var(--accent-cyan);">8</div>
+      <div class="metric-subtitle">Active Directory Roster</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">PRIVILEGED ACCOUNTS</div>
+      <div class="metric-value" id="kpi-admin-users" style="color: #ff3366;">2</div>
+      <div class="metric-subtitle">Admin & CISO Clearances</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">ACTIVE TELEMETRY</div>
+      <div class="metric-value" id="kpi-active-users" style="color: #00e676;">7</div>
+      <div class="metric-subtitle">Healthy Behavioral Baselines</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-title">FLAGGED / SUSPENDED</div>
+      <div class="metric-value" id="kpi-flagged-users" style="color: #ffb703;">1</div>
+      <div class="metric-subtitle">Zero-Trust Policy Review</div>
+    </div>
+  </div>
+
+  <div class="glass-panel" style="padding: 24px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+      <h3 style="font-size: 16px; font-weight: 700; color: var(--text-primary);">Enterprise Identity Roster & Permissions</h3>
+      <span style="font-size: 11px; color: var(--text-muted); background: rgba(0, 240, 255, 0.08); padding: 4px 10px; border-radius: 4px; border: 1px solid rgba(0, 240, 255, 0.2);">
+        Default Demo Password for all accounts: <code>Password123!</code>
+      </span>
+    </div>
+
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>User & Identity</th>
+            <th>Email Address</th>
+            <th>Assigned Role</th>
+            <th>Status</th>
+            <th>Account Type</th>
+            <th>Last Active</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-users">
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading user accounts...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  function getRoleBadge(role) {
+    switch (role) {
+      case 'ADMIN':
+        return '<span class="tag-severity tag-CRITICAL" style="background: rgba(255, 51, 102, 0.15); border-color: #ff3366; color: #ff99b3;">🛡️ ADMIN</span>';
+      case 'SECURITY_ANALYST':
+        return '<span class="tag-severity tag-HIGH" style="background: rgba(255, 183, 3, 0.15); border-color: #ffb703; color: #ffe066;">🔍 ANALYST</span>';
+      case 'AUDITOR':
+        return '<span class="tag-severity" style="background: rgba(168, 85, 247, 0.15); border: 1px solid #a855f7; color: #d8b4fe;">📋 AUDITOR</span>';
+      default:
+        return '<span class="tag-severity tag-LOW" style="background: rgba(0, 230, 118, 0.15); border-color: #00e676; color: #80ffbb;">👤 EMPLOYEE</span>';
+    }
+  }
+
+  function getStatusBadge(status) {
+    if (status === 'SUSPENDED') {
+      return '<span class="tag-severity tag-CRITICAL">⛔ SUSPENDED</span>';
+    } else if (status === 'LOCKED') {
+      return '<span class="tag-severity tag-HIGH">🔒 LOCKED</span>';
+    }
+    return '<span class="tag-severity tag-LOW">● ACTIVE</span>';
+  }
+
+  async function loadUsers() {
+    try {
+      const res = await window.apiClient.get('/api/users');
+      const users = res.users || [];
+      const tbody = document.getElementById('tbl-users');
+
+      // Update KPI counters
+      document.getElementById('kpi-total-users').textContent = users.length;
+      document.getElementById('kpi-admin-users').textContent = users.filter(u => u.role === 'ADMIN').length;
+      document.getElementById('kpi-active-users').textContent = users.filter(u => u.status === 'ACTIVE').length;
+      document.getElementById('kpi-flagged-users').textContent = users.filter(u => u.status !== 'ACTIVE').length;
+
+      if (users.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No users found.</td></tr>`;
+      } else {
+        tbody.innerHTML = users.map(u => `
+          <tr>
+            <td>
+              <div style="font-weight: 700; color: var(--text-primary);">${u.name}</div>
+            </td>
+            <td><code>${u.email}</code></td>
+            <td>${getRoleBadge(u.role)}</td>
+            <td>${getStatusBadge(u.status)}</td>
+            <td><span style="font-size: 11px; color: var(--accent-cyan); background: rgba(0, 240, 255, 0.08); padding: 2px 8px; border-radius: 4px;">DEMO PRESET</span></td>
+            <td><small style="color: var(--text-muted);">${u.lastLogin ? new Date(u.lastLogin).toLocaleString() : 'Ready to Authenticate'}</small></td>
+          </tr>
+        `).join('');
+      }
+    } catch (e) {
+      document.getElementById('tbl-users').innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-red);">${e.message}</td></tr>`;
+    }
+  }
+
+  loadUsers();
+</script>
+</body>
+</html>

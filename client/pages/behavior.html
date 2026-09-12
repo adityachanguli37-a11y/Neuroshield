@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .tab-btn {
+      padding: 8px 16px;
+      border: none;
+      background: transparent;
+      color: var(--text-secondary);
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+    }
+    .tab-btn.active {
+      color: var(--accent-cyan);
+      border-bottom-color: var(--accent-cyan);
+    }
+    .live-typing-box {
+      width: 100%;
+      height: 100px;
+      background: #090c13;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 14px;
+      color: var(--text-primary);
+      font-size: 14px;
+      font-family: inherit;
+      resize: vertical;
+      outline: none;
+      cursor: text !important;
+      caret-color: var(--accent-cyan) !important;
+      user-select: text !important;
+      -webkit-user-select: text !important;
+      pointer-events: auto !important;
+      position: relative !important;
+      z-index: 10 !important;
+      transform: translateZ(0);
+      transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+    .live-typing-box:focus {
+      border-color: var(--accent-cyan) !important;
+      box-shadow: 0 0 16px rgba(0, 240, 255, 0.4) !important;
+      background: #0c101a !important;
+    }
+    .live-typing-box::placeholder {
+      color: var(--text-muted);
+      opacity: 0.8;
+    }
+    .stat-pill {
+      background: rgba(18, 24, 38, 0.8);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 12px;
+    }
+    .meter-bar {
+      height: 12px;
+      width: 100%;
+      background: #151b27;
+      border-radius: 6px;
+      overflow: hidden;
+      margin: 8px 0;
+      position: relative;
+    }
+    .meter-fill {
+      height: 100%;
+      width: 12%;
+      background: linear-gradient(90deg, #00e676, #ffb703 60%, #ff3366);
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+      <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 4px;">Layer 1: Behavioral Identity Engine</h1>
+      <p style="font-size: 13px; color: var(--text-secondary);">Continuous biometric telemetry evaluation via K-Means Clustering, One-Class SVM, and Random Forest Ensemble.</p>
+    </div>
+    <div style="display: flex; gap: 8px; border-bottom: 1px solid var(--border-color);">
+      <button class="tab-btn active" id="tab-btn-live">⚡ LIVE CAPTURE & CALIBRATION</button>
+      <button class="tab-btn" id="tab-btn-manual">⚙️ MANUAL SIMULATOR</button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 24px;">
+    <!-- Left Panel: Live Capture & Manual Input -->
+    <div>
+      <!-- Live Capture Section -->
+      <div id="section-live" class="glass-panel" style="padding: 24px;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #00e676; box-shadow: 0 0 8px #00e676;"></span>
+          Real-Time Biometric Telemetry Capture
+        </h3>
+        <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">
+          Type the security verification phrase below. NeuroShield continuously samples your Inter-Keystroke Interval (IKI), key hold times, and mouse cursor kinematics.
+        </p>
+
+        <div id="target-sentence-card" style="background: rgba(0, 240, 255, 0.06); border: 1px solid rgba(0, 240, 255, 0.25); border-left: 4px solid var(--accent-cyan); padding: 12px 16px; border-radius: 6px; font-size: 13px; margin-bottom: 14px; color: #b6ecff; cursor: pointer; transition: all 0.2s;" title="Click anywhere here to focus the typing area">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <span style="font-weight: 700; color: var(--accent-cyan); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;">🎯 Target Verification Sentence</span>
+            <div>
+              <button type="button" id="btn-autotype-demo" class="btn btn-secondary" style="padding: 2px 10px; font-size: 11px; height: 24px; border-radius: 4px; color: var(--accent-cyan);" title="Simulates real human keystrokes for demonstration">⚡ Auto-Type Demo</button>
+            </div>
+          </div>
+          <div id="target-text-content" style="line-height: 1.5; font-style: italic; color: #e0f4ff;">
+            "The adaptive zero trust architecture continuously evaluates behavioral biometrics to defend high assurance enterprise assets."
+          </div>
+        </div>
+
+        <div style="margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center;">
+          <label for="live-typing-input" style="font-size: 11px; color: var(--text-secondary); cursor: pointer;">
+            ⚡ Active Biometric Telemetry Input (Click to type):
+          </label>
+          <span id="typing-status-hint" style="font-size: 11px; color: var(--accent-cyan);">Ready</span>
+        </div>
+
+        <textarea 
+          id="live-typing-input" 
+          class="live-typing-box" 
+          tabindex="0"
+          spellcheck="false"
+          autocomplete="off"
+          autocorrect="off"
+          placeholder="Click here and start typing the phrase above to record genuine keystroke and mouse telemetry..."
+        ></textarea>
+
+        <!-- Live Metrics HUD -->
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin: 16px 0;">
+          <div class="stat-pill">
+            <span style="color: var(--text-muted);">Typing Speed:</span>
+            <strong id="hud-wpm" style="color: var(--accent-cyan); margin-left: 6px;">0 WPM</strong>
+          </div>
+          <div class="stat-pill">
+            <span style="color: var(--text-muted);">Key Interval:</span>
+            <strong id="hud-iki" style="color: var(--accent-green); margin-left: 6px;">0 ms</strong>
+          </div>
+          <div class="stat-pill">
+            <span style="color: var(--text-muted);">App Mouse:</span>
+            <strong id="hud-mouse" style="color: var(--accent-yellow); margin-left: 6px;">0 px/s</strong>
+          </div>
+          <div class="stat-pill" title="Real-time cursor velocity across the entire OS (all screens and applications)">
+            <span style="color: var(--text-muted);">OS Pointer Speed:</span>
+            <strong id="hud-os-mouse" style="color: #38bdf8; margin-left: 6px;">0 px/s</strong>
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 12px;">
+          <button id="btn-eval-live" class="btn btn-primary" style="flex: 1;">⚡ ANALYZE LIVE CAPTURED TELEMETRY</button>
+          <button id="btn-calibrate" class="btn btn-secondary" style="flex: 0.8;">🎯 CALIBRATE BASELINE</button>
+        </div>
+      </div>
+
+      <!-- Manual Simulator Section (Hidden by default) -->
+      <div id="section-manual" class="glass-panel" style="padding: 24px; display: none;">
+        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Biometric Telemetry Input Simulator</h3>
+        <form id="telemetry-form">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label>Typing Speed (WPM)</label>
+              <input type="number" id="inp-typingSpeed" class="form-control" value="60">
+            </div>
+            <div class="form-group">
+              <label>Key Interval (ms)</label>
+              <input type="number" id="inp-typingInterval" class="form-control" value="120">
+            </div>
+            <div class="form-group">
+              <label>Mouse Velocity (px/s)</label>
+              <input type="number" id="inp-mouseVelocity" class="form-control" value="450">
+            </div>
+            <div class="form-group">
+              <label>Mouse Accel (px/s²)</label>
+              <input type="number" id="inp-mouseAccel" class="form-control" value="80">
+            </div>
+            <div class="form-group">
+              <label>Click Duration (ms)</label>
+              <input type="number" id="inp-clickDelay" class="form-control" value="180">
+            </div>
+            <div class="form-group">
+              <label>Session Hour (0-23)</label>
+              <input type="number" id="inp-sessionHour" class="form-control" value="14">
+            </div>
+          </div>
+          <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">ANALYZE SYNTHETIC TELEMETRY</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Panel: ML Breakdown & Anomaly Score -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">ML Classification Breakdown</h3>
+
+      <div class="metric-card" style="margin-bottom: 18px;">
+        <div class="metric-title">Ensemble Anomaly Score</div>
+        <div class="metric-value" id="val-anomaly-score" style="color: var(--accent-cyan); font-size: 32px;">0.12</div>
+        <div class="meter-bar">
+          <div id="meter-anomaly-fill" class="meter-fill" style="width: 12%;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: 10px; color: var(--text-muted);">
+          <span>GENUINE (&lt;0.40)</span>
+          <span>SUSPICIOUS (0.40-0.65)</span>
+          <span>ANOMALOUS (&ge;0.65)</span>
+        </div>
+        <div class="metric-subtitle" id="txt-classification" style="margin-top: 8px; font-weight: 700;">Classification: GENUINE</div>
+      </div>
+
+      <div class="table-container" style="margin-bottom: 16px;">
+        <table>
+          <thead>
+            <tr>
+              <th>ML Sub-Model</th>
+              <th>Observed Metric</th>
+              <th>Evaluation</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>K-Means Clustering</strong></td>
+              <td id="val-kmeans-dist">0.85 dist</td>
+              <td><span class="tag-severity tag-LOW" id="tag-kmeans">NORMAL</span></td>
+            </tr>
+            <tr>
+              <td><strong>One-Class SVM (RBF)</strong></td>
+              <td id="val-svm-dist">0.92 margin</td>
+              <td><span class="tag-severity tag-LOW" id="tag-svm">IN-BOUNDS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Random Forest Ensemble</strong></td>
+              <td id="val-rf-score">0.00 anomaly</td>
+              <td><span class="tag-severity tag-LOW" id="tag-rf">0/5 Trees</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style="padding: 12px; background: var(--bg-secondary); border-radius: 6px; font-size: 12px; color: var(--text-secondary); line-height: 1.5;" id="txt-explanation">
+        System ready for continuous biometric telemetry evaluation.
+      </div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script src="../js/biometrics.js"></script>
+<script>
+  // Tab Switching
+  const tabLive = document.getElementById('tab-btn-live');
+  const tabManual = document.getElementById('tab-btn-manual');
+  const secLive = document.getElementById('section-live');
+  const secManual = document.getElementById('section-manual');
+
+  tabLive.addEventListener('click', () => {
+    tabLive.classList.add('active');
+    tabManual.classList.remove('active');
+    secLive.style.display = 'block';
+    secManual.style.display = 'none';
+  });
+
+  tabManual.addEventListener('click', () => {
+    tabManual.classList.add('active');
+    tabLive.classList.remove('active');
+    secManual.style.display = 'block';
+    secLive.style.display = 'none';
+  });
+
+  // Start live collector and ensure interactive focus
+  const typingInput = document.getElementById('live-typing-input');
+  const targetCard = document.getElementById('target-sentence-card');
+  const targetText = "The adaptive zero trust architecture continuously evaluates behavioral biometrics to defend high assurance enterprise assets.";
+  const statusHint = document.getElementById('typing-status-hint');
+
+  function focusTypingInput() {
+    if (typingInput) {
+      try {
+        if (window.focus) window.focus();
+        typingInput.focus();
+        const len = typingInput.value.length;
+        typingInput.setSelectionRange(len, len);
+      } catch (e) {}
+    }
+  }
+
+  if (typingInput) {
+    // Explicit pointer/mouse handlers ensure cursor appearance and focus activation
+    typingInput.addEventListener('mousedown', () => focusTypingInput());
+    typingInput.addEventListener('click', () => focusTypingInput());
+    typingInput.addEventListener('touchstart', () => focusTypingInput(), { passive: true });
+    typingInput.addEventListener('focus', () => {
+      typingInput.style.borderColor = 'var(--accent-cyan)';
+      if (statusHint) statusHint.textContent = 'Active (Recording Telemetry)';
+    });
+    typingInput.addEventListener('blur', () => {
+      if (statusHint) statusHint.textContent = 'Ready';
+    });
+    typingInput.addEventListener('input', () => {
+      if (statusHint) statusHint.textContent = `${typingInput.value.length} chars typed`;
+    });
+
+    // Auto-focus on page load
+    setTimeout(focusTypingInput, 150);
+  }
+
+  // Clicking the target card focuses the input
+  if (targetCard) {
+    targetCard.addEventListener('click', (e) => {
+      if (e.target && e.target.id === 'btn-autotype-demo') return;
+      focusTypingInput();
+    });
+  }
+
+  // Auto-Type Simulator for Judges Demo
+  const btnAutoType = document.getElementById('btn-autotype-demo');
+  let autoTypeTimer = null;
+  if (btnAutoType) {
+    btnAutoType.addEventListener('click', (e) => {
+      e.stopPropagation();
+      focusTypingInput();
+      if (autoTypeTimer) {
+        clearInterval(autoTypeTimer);
+        autoTypeTimer = null;
+        btnAutoType.textContent = '⚡ Auto-Type Demo';
+        btnAutoType.style.color = 'var(--accent-cyan)';
+        return;
+      }
+
+      typingInput.value = '';
+      btnAutoType.textContent = '⏹ Stop Auto-Type';
+      btnAutoType.style.color = 'var(--accent-red)';
+      let charIdx = 0;
+
+      autoTypeTimer = setInterval(() => {
+        if (charIdx >= targetText.length) {
+          clearInterval(autoTypeTimer);
+          autoTypeTimer = null;
+          btnAutoType.textContent = '⚡ Auto-Type Demo';
+          btnAutoType.style.color = 'var(--accent-cyan)';
+          return;
+        }
+
+        const char = targetText[charIdx++];
+        typingInput.value += char;
+
+        // Dispatch synthetic keyboard events so biometrics collector calculates instant WPM & IKI
+        const now = performance.now();
+        const keyEvt = new KeyboardEvent('keydown', {
+          key: char,
+          code: `Key${char.toUpperCase()}`,
+          bubbles: true
+        });
+        window.dispatchEvent(keyEvt);
+        typingInput.dispatchEvent(new Event('input', { bubbles: true }));
+        typingInput.scrollTop = typingInput.scrollHeight;
+      }, 110);
+    });
+  }
+
+  if (window.biometricsCollector) {
+    window.biometricsCollector.start(window);
+    if (typingInput) {
+      window.biometricsCollector.attachToContainer(typingInput);
+    }
+  }
+
+  // Update HUD every 200ms
+  setInterval(async () => {
+    if (!window.biometricsCollector) return;
+    if (window.biometricsCollector.updateOsPointerSpeed) {
+      await window.biometricsCollector.updateOsPointerSpeed();
+    }
+    const t = window.biometricsCollector.getLiveTelemetry();
+    document.getElementById('hud-wpm').textContent = `${t.instantWpm || 0} WPM`;
+    document.getElementById('hud-iki').textContent = `${t.typingInterval || 0} ms`;
+    document.getElementById('hud-mouse').textContent = `${t.appMouseVelocity || 0} px/s`;
+    const osEl = document.getElementById('hud-os-mouse');
+    if (osEl) {
+      osEl.textContent = `${t.osInstantSpeed || 0} px/s`;
+    }
+  }, 200);
+
+  function renderEvaluation(ev) {
+    document.getElementById('val-anomaly-score').textContent = ev.anomalyScore;
+    const pct = Math.min(100, Math.round(ev.anomalyScore * 100));
+    document.getElementById('meter-anomaly-fill').style.width = `${pct}%`;
+
+    const classEl = document.getElementById('txt-classification');
+    classEl.textContent = `Classification: ${ev.classification} (Confidence: ${(ev.confidence * 100).toFixed(0)}%)`;
+
+    if (ev.classification === 'GENUINE') {
+      classEl.style.color = 'var(--accent-green)';
+    } else if (ev.classification === 'SUSPICIOUS') {
+      classEl.style.color = 'var(--accent-yellow)';
+    } else {
+      classEl.style.color = 'var(--accent-red)';
+    }
+
+    document.getElementById('val-kmeans-dist').textContent = `${ev.kmeansDistance} dist`;
+    document.getElementById('val-svm-dist').textContent = `${ev.svmDistance} margin`;
+    document.getElementById('val-rf-score').textContent = `${ev.rfAnomalyScore}`;
+    document.getElementById('txt-explanation').textContent = ev.explanation;
+
+    const tagK = document.getElementById('tag-kmeans');
+    const tagS = document.getElementById('tag-svm');
+    const tagR = document.getElementById('tag-rf');
+
+    if (ev.kmeansDistance > 2.0) {
+      tagK.className = 'tag-severity tag-CRITICAL';
+      tagK.textContent = 'ANOMALOUS';
+    } else {
+      tagK.className = 'tag-severity tag-LOW';
+      tagK.textContent = 'NORMAL';
+    }
+
+    if (ev.svmDistance > 1.5) {
+      tagS.className = 'tag-severity tag-CRITICAL';
+      tagS.textContent = 'OUT-OF-BOUNDS';
+    } else {
+      tagS.className = 'tag-severity tag-LOW';
+      tagS.textContent = 'IN-BOUNDS';
+    }
+
+    tagR.textContent = `${ev.rfAnomalyScore >= 0.5 ? 'ANOMALY' : 'GENUINE'}`;
+    tagR.className = ev.rfAnomalyScore >= 0.5 ? 'tag-severity tag-CRITICAL' : 'tag-severity tag-LOW';
+  }
+
+  // Analyze Live Telemetry
+  document.getElementById('btn-eval-live').addEventListener('click', async () => {
+    const t = window.biometricsCollector.getLiveTelemetry();
+    if ((t.instantWpm === 0 && t.sessionWpm === 0) && t.sampleMetrics.keystrokesCount === 0) {
+      alert('Please type the target sentence in the input box above first so NeuroShield can record your active typing and mouse dynamics.');
+      return;
+    }
+    const evalTelemetry = {
+      typingSpeed: t.instantWpm > 0 ? t.instantWpm : (t.sessionWpm > 0 ? t.sessionWpm : 60),
+      typingInterval: t.typingInterval > 0 ? t.typingInterval : 120,
+      mouseVelocity: t.appMouseVelocity > 0 ? t.appMouseVelocity : (t.osInstantSpeed > 0 ? t.osInstantSpeed : 450),
+      mouseAccel: t.mouseAccel > 0 ? t.mouseAccel : 80,
+      clickDelay: t.clickDelay > 0 ? t.clickDelay : 180,
+      scrollVelocity: t.scrollVelocity > 0 ? t.scrollVelocity : 300,
+      sessionHour: t.sessionHour
+    };
+    try {
+      const res = await window.apiClient.post('/api/behavior/telemetry', { telemetry: evalTelemetry });
+      renderEvaluation(res.evaluation);
+    } catch (err) {
+      alert('Behavior evaluation error: ' + err.message);
+    }
+  });
+
+  // Calibrate Baseline
+  document.getElementById('btn-calibrate').addEventListener('click', async () => {
+    const t = window.biometricsCollector.getLiveTelemetry();
+    try {
+      const user = JSON.parse(localStorage.getItem('neuroshield_user_info') || '{}');
+      const calibratedSpeed = t.instantWpm > 0 ? t.instantWpm : (t.sessionWpm > 0 ? t.sessionWpm : (t.sampleMetrics.keystrokesCount > 5 ? 65 : 60));
+      const calibratedInterval = t.typingInterval > 0 ? t.typingInterval : 120;
+      const calibratedMouse = t.appMouseVelocity > 0 ? t.appMouseVelocity : (t.osInstantSpeed > 0 ? t.osInstantSpeed : 450);
+
+      const res = await window.apiClient.post('/api/behavior/profile', {
+        userId: user._id,
+        baselineFeatures: {
+          typingSpeed: calibratedSpeed,
+          typingInterval: calibratedInterval,
+          mouseVelocity: calibratedMouse,
+          mouseAccel: t.mouseAccel > 0 ? t.mouseAccel : 80,
+          clickDelay: t.clickDelay > 0 ? t.clickDelay : 180,
+          scrollVelocity: t.scrollVelocity > 0 ? t.scrollVelocity : 300,
+          sessionHour: t.sessionHour
+        }
+      });
+
+      const conf = Math.round(((res.profile && res.profile.modelConfidence) || 0.90) * 100);
+      alert(`🎯 Biometric Baseline Calibrated Successfully!\n\n• Baseline Speed: ${calibratedSpeed} WPM\n• Key Cadence: ${calibratedInterval} ms\n• Mouse Velocity: ${calibratedMouse} px/s\n• Model Confidence: ${conf}%\n\nNeuroShield has locked in your personal behavioral profile.`);
+    } catch (err) {
+      alert('Baseline calibration error: ' + err.message);
+    }
+  });
+
+  // Manual Simulator submit
+  document.getElementById('telemetry-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const telemetry = {
+      typingSpeed: Number(document.getElementById('inp-typingSpeed').value),
+      typingInterval: Number(document.getElementById('inp-typingInterval').value),
+      mouseVelocity: Number(document.getElementById('inp-mouseVelocity').value),
+      mouseAccel: Number(document.getElementById('inp-mouseAccel').value),
+      clickDelay: Number(document.getElementById('inp-clickDelay').value),
+      sessionHour: Number(document.getElementById('inp-sessionHour').value)
+    };
+
+    try {
+      const res = await window.apiClient.post('/api/behavior/telemetry', { telemetry });
+      renderEvaluation(res.evaluation);
+    } catch (err) {
+      alert('Behavior evaluation error: ' + err.message);
+    }
+  });
+</script>
+</body>
+</html>

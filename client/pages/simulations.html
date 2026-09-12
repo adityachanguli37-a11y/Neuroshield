@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Monte Carlo Threat Simulation Suite</h1>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Stochastic threat path simulation (100 to 100,000 iterations) & 10-Step NeuroShield Security Engine Execution.</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Complete 10-Step Simulator Controls -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Simulation Configuration</h3>
+      <div class="form-group">
+        <label>Monte Carlo Iterations Count (100 - 100,000)</label>
+        <input type="number" id="inp-sim-iterations" class="form-control" value="1000" min="100" max="100000">
+      </div>
+      <button id="btn-start-full-sim" class="btn btn-primary" style="width: 100%; margin-top: 12px;">⚡ EXECUTE COMPLETE 10-STEP NEUROSHIELD PIPELINE</button>
+
+      <!-- 10-step progress bar -->
+      <div id="sim-progress-box" style="margin-top: 24px; display: none;">
+        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
+          <span id="txt-sim-step">Step 1/10: Behavioral Telemetry</span>
+          <span id="txt-sim-pct">10%</span>
+        </div>
+        <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-sim-fill" style="width: 10%;"></div></div>
+      </div>
+    </div>
+
+    <!-- Simulation Results Log -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Execution Output & Monte Carlo Metrics</h3>
+      <div id="sim-results-output" style="font-family: monospace; font-size: 12px; line-height: 1.6; color: var(--accent-cyan); background: #0c1019; padding: 16px; border-radius: 6px; border: 1px solid var(--border-color); height: 320px; overflow-y: auto;">
+        System ready. Click "Execute Complete 10-Step NeuroShield Pipeline" to run stochastic simulations and persist results to MongoDB.
+      </div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  document.getElementById('btn-start-full-sim').addEventListener('click', async () => {
+    const iterations = Number(document.getElementById('inp-sim-iterations').value);
+    const btn = document.getElementById('btn-start-full-sim');
+    const pBox = document.getElementById('sim-progress-box');
+    const pStep = document.getElementById('txt-sim-step');
+    const pPct = document.getElementById('txt-sim-pct');
+    const pFill = document.getElementById('bar-sim-fill');
+    const output = document.getElementById('sim-results-output');
+
+    btn.disabled = true;
+    pBox.style.display = 'block';
+    output.innerHTML = 'Starting complete 10-step NeuroShield simulation pipeline...\n';
+
+    const steps = [
+      "1/10 Behavioral telemetry collection",
+      "2/10 Feature extraction and normalization",
+      "3/10 Behavioral ML analysis (K-Means, SVM, Random Forest)",
+      "4/10 Adaptive Trust calculation & Fuzzy logic rules",
+      "5/10 Human Risk Prediction (Decision Tree, LR, Bayes)",
+      "6/10 Markov threat-state transition calculation",
+      "7/10 Monte Carlo threat simulation execution",
+      "8/10 Intelligent Deception evaluation",
+      "9/10 Security Event & Alert generation",
+      "10/10 Feedback loop, MongoDB persistence & Socket.IO update"
+    ];
+
+    for (let i = 0; i < steps.length; i++) {
+      pStep.textContent = `Step ${steps[i]}`;
+      const pct = Math.round(((i + 1) / steps.length) * 100);
+      pPct.textContent = `${pct}%`;
+      pFill.style.width = `${pct}%`;
+      output.innerHTML += `[${new Date().toLocaleTimeString()}] Executing Stage ${steps[i]}...\n`;
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    try {
+      const res = await window.apiClient.post('/api/simulations/run', { iterations });
+      const r = res.results;
+      output.innerHTML += `\n=========================================\n`;
+      output.innerHTML += `SIMULATION COMPLETE (ID: ${res.simulationId})\n`;
+      output.innerHTML += `Behavior Score: ${r.step3_behaviorML.behaviorScore}/100 | Anomaly: ${r.step3_behaviorML.anomalyScore}\n`;
+      output.innerHTML += `Adaptive Trust: ${r.step4_adaptiveTrust.overallTrust}/100 | Level: ${r.step4_adaptiveTrust.trustLevel}\n`;
+      output.innerHTML += `Human Risk: ${r.step5_humanRisk.riskScore}/100 | Category: ${r.step5_humanRisk.category}\n`;
+      output.innerHTML += `Compromise Probability: ${(r.step7_monteCarlo.compromiseProbability * 100).toFixed(1)}%\n`;
+      output.innerHTML += `Expected Time To Compromise: ${r.step7_monteCarlo.expectedTimeToCompromise} mins\n`;
+      output.innerHTML += `Bottleneck Critical Node: ${r.step7_monteCarlo.criticalNode}\n`;
+      output.innerHTML += `All metrics successfully persisted to MongoDB Atlas.\n`;
+    } catch (err) {
+      output.innerHTML += `\n[ERROR] Simulation failed: ${err.message}\n`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

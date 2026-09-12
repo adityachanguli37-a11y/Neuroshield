@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroShield - Authentication</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: radial-gradient(circle at center, #121722 0%, #0a0d14 100%);
+    }
+    .login-card {
+      width: 420px;
+      padding: 36px;
+      border-radius: 12px;
+      background: rgba(18, 23, 34, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    }
+    .brand-title {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 2px;
+      margin-bottom: 4px;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .error-banner {
+      padding: 10px 14px;
+      background: rgba(255, 51, 102, 0.15);
+      border: 1px solid var(--accent-red);
+      color: #ff99b3;
+      border-radius: 6px;
+      font-size: 13px;
+      margin-bottom: 16px;
+      display: none;
+    }
+    .demo-hint {
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-color);
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<div class="login-card">
+  <div class="brand-title">NEUROSHIELD AUTH</div>
+  <div class="brand-sub">Continuous Adaptive Security Identity Access</div>
+
+  <div id="error-box" class="error-banner"></div>
+
+  <form id="login-form">
+    <div class="form-group">
+      <label for="email">User Email Address</label>
+      <input type="email" id="email" class="form-control" placeholder="name@company.com" required autocomplete="username">
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password</label>
+      <input type="password" id="password" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+    </div>
+
+    <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 8px;">SIGN IN TO SOC</button>
+  </form>
+
+  <div class="demo-hint">
+    <div style="font-weight: 700; color: var(--accent-cyan); margin-bottom: 8px; font-size: 12px; display: flex; justify-content: space-between;">
+      <span>⚡ 1-CLICK DEMO ACCESS (FOR JUDGES)</span>
+      <span style="color: var(--text-muted); font-size: 10px;">Pass: Password123!</span>
+    </div>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+      <button type="button" class="btn btn-secondary btn-demo-login" data-email="admin@neuroshield.local" style="font-size: 11px; padding: 6px 10px; text-align: left; display: flex; flex-direction: column;">
+        <span style="font-weight: 600;">🛡️ SOC Admin</span>
+        <span style="color: var(--accent-cyan); font-size: 9px;">ADMIN • Full Control</span>
+      </button>
+      <button type="button" class="btn btn-secondary btn-demo-login" data-email="ciso@neuroshield.local" style="font-size: 11px; padding: 6px 10px; text-align: left; display: flex; flex-direction: column;">
+        <span style="font-weight: 600;">👔 CISO</span>
+        <span style="color: var(--accent-cyan); font-size: 9px;">ADMIN • Executive</span>
+      </button>
+      <button type="button" class="btn btn-secondary btn-demo-login" data-email="analyst@neuroshield.local" style="font-size: 11px; padding: 6px 10px; text-align: left; display: flex; flex-direction: column;">
+        <span style="font-weight: 600;">🔍 Threat Analyst</span>
+        <span style="color: var(--accent-yellow); font-size: 9px;">ANALYST • Hunts</span>
+      </button>
+      <button type="button" class="btn btn-secondary btn-demo-login" data-email="devops@neuroshield.local" style="font-size: 11px; padding: 6px 10px; text-align: left; display: flex; flex-direction: column;">
+        <span style="font-weight: 600;">💻 DevOps Lead</span>
+        <span style="color: var(--accent-green); font-size: 9px;">EMPLOYEE • Cloud</span>
+      </button>
+      <button type="button" class="btn btn-secondary btn-demo-login" data-email="insider@neuroshield.local" style="font-size: 11px; padding: 6px 10px; text-align: left; display: flex; flex-direction: column;">
+        <span style="font-weight: 600;">⚠️ Suspicious Insider</span>
+        <span style="color: var(--accent-red); font-size: 9px;">SUSPENDED • Anomaly</span>
+      </button>
+      <button type="button" class="btn btn-secondary btn-demo-login" data-email="employee@neuroshield.local" style="font-size: 11px; padding: 6px 10px; text-align: left; display: flex; flex-direction: column;">
+        <span style="font-weight: 600;">👤 Standard User</span>
+        <span style="color: var(--accent-green); font-size: 9px;">EMPLOYEE • Baseline</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="js/api.js"></script>
+<script src="js/auth.js"></script>
+<script>
+  async function performLogin(email, password) {
+    const errorBox = document.getElementById('error-box');
+    errorBox.style.display = 'none';
+
+    try {
+      await window.authManager.login(email, password);
+      window.location.href = 'dashboard.html';
+    } catch (err) {
+      errorBox.textContent = err.message || 'Authentication failed. Please check credentials.';
+      errorBox.style.display = 'block';
+    }
+  }
+
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value.trim();
+    const password = document.getElementById('password').value;
+    await performLogin(email, password);
+  });
+
+  document.querySelectorAll('.btn-demo-login').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const email = btn.getAttribute('data-email');
+      const password = 'Password123!';
+      document.getElementById('email').value = email;
+      document.getElementById('password').value = password;
+      btn.style.opacity = '0.6';
+      btn.textContent = 'Authenticating...';
+      await performLogin(email, password);
+      btn.style.opacity = '1';
+    });
+  });
+</script>
+</body>
+</html>

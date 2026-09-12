@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Security Alerts Operations</h1>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Prioritized alerts with lifecycle management (NEW, ACKNOWLEDGED, INVESTIGATING, RESOLVED).</p>
+
+  <div class="glass-panel" style="padding: 24px;">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Alert ID</th>
+            <th>Severity</th>
+            <th>Title & Description</th>
+            <th>Source Layer</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tbl-alerts">
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading security alerts...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  async function loadAlerts() {
+    try {
+      const res = await window.apiClient.get('/api/alerts');
+      const alerts = res.alerts || [];
+      const tbody = document.getElementById('tbl-alerts');
+      if (alerts.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No security alerts recorded. System operating safely.</td></tr>`;
+      } else {
+        tbody.innerHTML = alerts.map(a => `
+          <tr>
+            <td><code>${a.alertId}</code></td>
+            <td><span class="tag-severity tag-${a.severity}">${a.severity}</span></td>
+            <td>
+              <strong>${a.title}</strong><br>
+              <small style="color:var(--text-secondary);">${a.description}</small>
+            </td>
+            <td><small>${a.sourceLayer}</small></td>
+            <td><strong>${a.status}</strong></td>
+            <td>
+              ${a.status === 'NEW' ? `<button class="btn btn-secondary" onclick="ackAlert('${a.alertId}')" style="padding:4px 8px; font-size:11px;">Acknowledge</button>` : ''}
+              ${a.status !== 'RESOLVED' ? `<button class="btn btn-primary" onclick="resolveAlert('${a.alertId}')" style="padding:4px 8px; font-size:11px; margin-left:4px;">Resolve</button>` : '<span style="color:var(--accent-green); font-size:11px;">✓ Resolved</span>'}
+            </td>
+          </tr>
+        `).join('');
+      }
+    } catch (e) {
+      console.warn('Alerts load note:', e.message);
+    }
+  }
+
+  async function ackAlert(alertId) {
+    try {
+      await window.apiClient.post(`/api/alerts/${alertId}/acknowledge`, {});
+      loadAlerts();
+    } catch (err) {
+      alert('Error acknowledging alert: ' + err.message);
+    }
+  }
+
+  async function resolveAlert(alertId) {
+    try {
+      await window.apiClient.post(`/api/alerts/${alertId}/resolve`, {});
+      loadAlerts();
+    } catch (err) {
+      alert('Error resolving alert: ' + err.message);
+    }
+  }
+
+  loadAlerts();
+</script>
+</body>
+</html>

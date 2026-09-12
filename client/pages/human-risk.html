@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Layer 3: Human Risk Prediction Engine</h1>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Tri-model risk evaluator combining Decision Trees, Logistic Regression log-odds, and Bayesian posterior updates.</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Human Risk Score Box -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Human Risk Assessment</h3>
+      <div class="metric-card" style="margin-bottom: 20px;">
+        <div class="metric-title">Predicted Risk Score</div>
+        <div class="metric-value" id="val-human-score" style="color: var(--accent-yellow);">18/100</div>
+        <div class="metric-subtitle" id="txt-risk-category">CATEGORY: LOW RISK</div>
+      </div>
+
+      <div style="margin-bottom: 12px;">
+        <strong>Decision Tree Categorical Risk:</strong> <span id="val-dt-risk">20</span>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <strong>Logistic Regression Log-Odds Probability:</strong> <span id="val-lr-prob">0.15</span>
+      </div>
+      <div style="margin-bottom: 12px;">
+        <strong>Bayesian Posterior Probability P(Risk|Evidence):</strong> <span id="val-bayes-prob">0.18</span>
+      </div>
+
+      <div style="margin-top: 20px; padding: 14px; background: var(--bg-secondary); border-radius: 6px; border-left: 3px solid var(--accent-cyan);">
+        <strong style="color: var(--accent-cyan); display: block; margin-bottom: 4px;">RECOMMENDED INTERVENTION:</strong>
+        <span id="txt-recommendation">Standard user monitoring active. No heightened risk interventions required.</span>
+      </div>
+    </div>
+
+    <!-- Contributing Factors Table -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Contributing Risk Factors</h3>
+      <div class="table-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Risk Factor</th>
+              <th>Impact</th>
+              <th>Description</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-risk-factors">
+            <tr>
+              <td>Baseline Normal Activity</td>
+              <td>0</td>
+              <td>Activity matches safe historical profile.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  async function loadHumanRiskData() {
+    try {
+      const user = JSON.parse(localStorage.getItem('neuroshield_user_info') || '{}');
+      const res = await window.apiClient.get(`/api/human-risk/current/${user._id || 'demo'}`);
+      const hr = res.humanRisk;
+      if (hr) {
+        document.getElementById('val-human-score').textContent = `${hr.riskScore}/100`;
+        document.getElementById('txt-risk-category').textContent = `CATEGORY: ${hr.category} RISK`;
+        if (hr.modelResults) {
+          document.getElementById('val-dt-risk').textContent = hr.modelResults.decisionTreeRisk;
+          document.getElementById('val-lr-prob').textContent = hr.modelResults.logisticProbability;
+          document.getElementById('val-bayes-prob').textContent = hr.modelResults.bayesianPosterior;
+        }
+        document.getElementById('txt-recommendation').textContent = hr.recommendation;
+
+        if (hr.contributingFactors && hr.contributingFactors.length > 0) {
+          const tbody = document.getElementById('tbl-risk-factors');
+          tbody.innerHTML = hr.contributingFactors.map(f => `
+            <tr>
+              <td><strong>${f.factor}</strong></td>
+              <td>+${f.impact}</td>
+              <td><small>${f.description}</small></td>
+            </tr>
+          `).join('');
+        }
+      }
+    } catch (e) {
+      console.warn('Human risk note:', e.message);
+    }
+  }
+
+  loadHumanRiskData();
+</script>
+</body>
+</html>

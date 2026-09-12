@@ -1,0 +1,126 @@
+/* Common Components CSS */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13px;
+  transition: var(--transition);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-cyan), #00a8ff);
+  color: #000;
+}
+.btn-primary:hover {
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, var(--accent-red), #d60036);
+  color: #fff;
+}
+
+.btn-secondary {
+  background-color: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+}
+.btn-secondary:hover {
+  border-color: var(--accent-cyan);
+}
+
+/* Tables */
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+th {
+  background-color: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-weight: 600;
+  padding: 12px 16px;
+  font-size: 12px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-color);
+}
+
+td {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(38, 51, 77, 0.4);
+  color: var(--text-primary);
+}
+
+tr:hover {
+  background-color: var(--bg-card-hover);
+}
+
+/* Progress bar */
+.progress-bar-container {
+  width: 100%;
+  height: 8px;
+  background-color: var(--bg-secondary);
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-magenta));
+  transition: width 0.3s ease;
+}
+
+/* Severity Tag Badges */
+.tag-severity {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.tag-LOW { background: rgba(0, 230, 118, 0.15); color: var(--accent-green); border: 1px solid var(--accent-green); }
+.tag-MEDIUM { background: rgba(255, 183, 3, 0.15); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
+.tag-HIGH { background: rgba(255, 112, 67, 0.15); color: #ff7043; border: 1px solid #ff7043; }
+.tag-CRITICAL { background: rgba(255, 51, 102, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); box-shadow: 0 0 8px rgba(255, 51, 102, 0.3); }
+
+/* Forms */
+.form-group {
+  margin-bottom: 16px;
+}
+.form-group label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.form-control {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 6px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  font-family: inherit;
+  caret-color: var(--accent-cyan);
+  cursor: text;
+}
+.form-control:focus {
+  border-color: var(--accent-cyan);
+  outline: none;
+  box-shadow: 0 0 10px rgba(0, 240, 255, 0.3);
+}

@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NeuroShield - Application Startup</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/components.css">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: radial-gradient(circle at center, #121722 0%, #0a0d14 100%);
+    }
+
+    .startup-card {
+      width: 480px;
+      padding: 36px;
+      border-radius: 12px;
+      background: rgba(18, 23, 34, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-color);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+    }
+
+    .brand-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: var(--text-primary);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-title .logo-box {
+      width: 36px;
+      height: 36px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-magenta));
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .brand-tagline {
+      font-size: 13px;
+      color: var(--accent-cyan);
+      letter-spacing: 1px;
+      margin-bottom: 24px;
+    }
+
+    .status-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(38, 51, 77, 0.5);
+    }
+
+    .status-item .label {
+      font-size: 14px;
+      color: var(--text-secondary);
+    }
+
+    .status-item .indicator {
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .status-ok { color: var(--accent-green); }
+    .status-fail { color: var(--accent-red); }
+    .status-degraded { color: var(--accent-yellow); }
+
+    .action-row {
+      margin-top: 28px;
+      display: flex;
+      gap: 12px;
+    }
+
+    .action-row .btn {
+      flex: 1;
+    }
+
+    .warning-box {
+      margin-top: 16px;
+      padding: 10px 14px;
+      background: rgba(255, 51, 102, 0.1);
+      border: 1px solid var(--accent-red);
+      border-radius: 6px;
+      font-size: 12px;
+      color: #ff99b3;
+      display: none;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body>
+  <div class="startup-card">
+    <div class="brand-title">
+      <div class="logo-box">NS</div>
+      NEUROSHIELD
+    </div>
+    <div class="brand-tagline">PREDICT. ADAPT. DEFEND.</div>
+
+    <div class="status-list">
+      <div class="status-item">
+        <span class="label">Electron Application</span>
+        <span id="st-app" class="indicator status-ok">Ready</span>
+      </div>
+      <div class="status-item">
+        <span class="label">Express REST API</span>
+        <span id="st-express" class="indicator">Checking</span>
+      </div>
+      <div class="status-item">
+        <span class="label">MongoDB Atlas</span>
+        <span id="st-db" class="indicator">Checking</span>
+      </div>
+      <div class="status-item">
+        <span class="label">Realtime Pipeline</span>
+        <span id="st-realtime" class="indicator">Checking</span>
+      </div>
+    </div>
+
+    <div id="warning-banner" class="warning-box">
+      MongoDB Atlas is currently offline. Open System Settings to configure MONGODB_URI.
+    </div>
+
+    <div class="action-row">
+      <button id="btn-enter" class="btn btn-primary" disabled>ENTER NEUROSHIELD</button>
+      <button id="btn-retry" class="btn btn-secondary">RETRY</button>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script>
+    async function checkStartupHealth() {
+      const stExpress = document.getElementById('st-express');
+      const stDb = document.getElementById('st-db');
+      const stRealtime = document.getElementById('st-realtime');
+      const btnEnter = document.getElementById('btn-enter');
+      const warningBanner = document.getElementById('warning-banner');
+
+      try {
+        const startupState = window.neuroshield && window.neuroshield.getStartupState
+          ? await window.neuroshield.getStartupState()
+          : null;
+
+        if (startupState && startupState.error) {
+          throw new Error(startupState.error);
+        }
+
+        const baseUrl = await window.apiClient.getBaseUrl();
+        const res = await fetch(`${baseUrl}/api/health`);
+        const health = await res.json();
+
+        stExpress.className = 'indicator status-ok';
+        stExpress.textContent = 'Ready';
+
+        if (health.services && health.services.database === 'connected') {
+          stDb.className = 'indicator status-ok';
+          const isEmbedded = health.services.databaseMode === 'embedded';
+          stDb.textContent = isEmbedded ? 'Ready (Local)' : 'Connected (Atlas)';
+          if (isEmbedded) {
+            warningBanner.style.display = 'block';
+            warningBanner.style.background = 'rgba(0, 240, 255, 0.08)';
+            warningBanner.style.borderColor = 'var(--accent-cyan)';
+            warningBanner.style.color = '#a0e7ff';
+            warningBanner.textContent = 'Running in Local Standalone Mode. Demo accounts provisioned and ready.';
+          } else {
+            warningBanner.style.display = 'none';
+          }
+        } else {
+          stDb.className = 'indicator status-fail';
+          stDb.textContent = 'Offline';
+          warningBanner.style.display = 'block';
+          warningBanner.style.background = 'rgba(255, 51, 102, 0.1)';
+          warningBanner.style.borderColor = 'var(--accent-red)';
+          warningBanner.style.color = '#ff99b3';
+          warningBanner.textContent = 'MongoDB is currently offline. Open System Settings to configure MONGODB_URI.';
+        }
+
+        if (health.services && health.services.realtime === 'connected') {
+          stRealtime.className = 'indicator status-ok';
+          stRealtime.textContent = 'Connected';
+        } else {
+          stRealtime.className = 'indicator status-degraded';
+          stRealtime.textContent = 'Local Mode';
+        }
+
+        btnEnter.disabled = false;
+      } catch (err) {
+        stExpress.className = 'indicator status-fail';
+        stExpress.textContent = 'Offline';
+        stDb.className = 'indicator status-fail';
+        stDb.textContent = 'Offline';
+        stRealtime.className = 'indicator status-fail';
+        stRealtime.textContent = 'Offline';
+        warningBanner.style.display = 'block';
+        warningBanner.textContent = `Backend Express API unavailable: ${err.message}`;
+        btnEnter.disabled = true;
+      }
+    }
+
+    document.getElementById('btn-enter').addEventListener('click', () => {
+      window.location.href = 'login.html';
+    });
+
+    document.getElementById('btn-retry').addEventListener('click', checkStartupHealth);
+
+    checkStartupHealth();
+  </script>
+</body>
+</html>

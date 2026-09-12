@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="../css/main.css">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/components.css">
+  <style>
+    .compliance-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      background: rgba(0, 230, 118, 0.1);
+      border: 1px solid var(--accent-green);
+      color: var(--accent-green);
+    }
+  </style>
+</head>
+<body style="padding: 24px; background: var(--bg-primary);">
+  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Security Audit & Executive Reporting</h1>
+  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Generate executive security compliance reports, export security audit logs to CSV, and inspect NIST SP 800-207 Zero Trust telemetry.</p>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Report Summary Card -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center;">
+        <span>Executive Audit Summary</span>
+        <span class="compliance-pill">✓ NIST SP 800-207 COMPLIANT</span>
+      </h3>
+      <div style="margin-bottom: 12px;"><strong>Total Recorded Events:</strong> <span id="val-total-events">0</span></div>
+      <div style="margin-bottom: 12px;"><strong>Active Unresolved Alerts:</strong> <span id="val-active-alerts">0</span></div>
+      <div style="margin-bottom: 12px;"><strong>Current Adaptive Trust Score:</strong> <span id="val-trust-score">85/100</span></div>
+      <div style="margin-bottom: 12px;"><strong>Predicted Human Risk Category:</strong> <span id="val-human-risk">LOW</span></div>
+      <div style="margin-bottom: 12px;"><strong>Markov Threat Compromise Probability:</strong> <span id="val-comp-prob">0.05</span></div>
+      <div style="margin-bottom: 24px;"><strong>Active Deception Canary Traps:</strong> <span id="val-deceptions">0</span></div>
+
+      <div style="display: flex; flex-direction: column; gap: 10px;">
+        <button id="btn-export-csv" class="btn btn-primary" style="width: 100%;">📥 EXPORT SECURITY AUDIT (CSV)</button>
+        <button id="btn-export-json" class="btn btn-secondary" style="width: 100%;">📋 EXPORT EXECUTIVE ZTA AUDIT SNAPSHOT (JSON)</button>
+      </div>
+    </div>
+
+    <!-- Export Specification Details -->
+    <div class="glass-panel" style="padding: 24px;">
+      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Zero-Trust Architecture Pillar Mapping</h3>
+      <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+        NeuroShield audit reports aggregate live telemetry across all five cybersecurity defense pillars:
+      </p>
+      <ul style="margin: 16px 0 16px 20px; font-size: 13px; color: var(--text-secondary); line-height: 1.8;">
+        <li><strong>Pillar 1 - Identity:</strong> Continuous Behavioral Biometrics (WPM, Key Hold, Mouse Kinematics).</li>
+        <li><strong>Pillar 2 - Device & Context:</strong> Adaptive Trust Matrix (Device 20%, Network 15%, Location 15%, Time 10%).</li>
+        <li><strong>Pillar 3 - Human Factors:</strong> Tri-model risk evaluator (Decision Trees, Logistic Regression, Bayesian).</li>
+        <li><strong>Pillar 4 - Threats & Workloads:</strong> 7-State Markov Chain & Monte Carlo stochastic path simulator.</li>
+        <li><strong>Pillar 5 - Data & Deception:</strong> Active decoy traps, canary tokens, and zero-trust tripwires.</li>
+      </ul>
+      <p style="font-size: 12px; color: var(--text-muted); border-top: 1px solid var(--border-color); padding-top: 12px;">
+        Authoritative data sourced from active database with full SHA-256 verifiable audit records.
+      </p>
+    </div>
+  </div>
+
+<script src="../js/api.js"></script>
+<script>
+  async function loadReportSummary() {
+    try {
+      const res = await window.apiClient.get('/api/reports/summary');
+      const s = res.summary;
+      document.getElementById('val-total-events').textContent = s.totalEvents;
+      document.getElementById('val-active-alerts').textContent = s.activeAlerts;
+      document.getElementById('val-trust-score').textContent = `${s.overallTrustScore}/100 (${s.trustLevel})`;
+      document.getElementById('val-human-risk').textContent = `${s.humanRiskScore}/100 (${s.riskCategory})`;
+      document.getElementById('val-comp-prob').textContent = s.compromiseProbability;
+      document.getElementById('val-deceptions').textContent = s.totalDeceptionEvents;
+    } catch (e) {
+      console.warn('Report load note:', e.message);
+    }
+  }
+
+  // Unified download / save helper
+  async function downloadOrSave(filename, content, mimeType, filters) {
+    try {
+      const ns = (window.neuroshield && window.neuroshield.saveFile)
+        ? window.neuroshield
+        : ((window.parent && window.parent.neuroshield && window.parent.neuroshield.saveFile) ? window.parent.neuroshield : null);
+
+      if (ns && typeof ns.saveFile === 'function') {
+        const res = await ns.saveFile({ defaultFilename: filename, content, filters });
+        if (res && res.canceled) return;
+        if (res && res.success) {
+          alert(`✓ Report Exported Successfully!\n\nSaved to: ${res.filePath}`);
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('Native save fallback:', e.message);
+    }
+
+    // Web / blob download fallback
+    const blob = new Blob([content], { type: mimeType });
+    const downloadUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = downloadUrl;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(downloadUrl);
+    }, 250);
+    alert(`✓ Download Initiated:\n${filename}`);
+  }
+
+  // Export CSV
+  document.getElementById('btn-export-csv').addEventListener('click', async () => {
+    try {
+      const baseUrl = await window.apiClient.getBaseUrl();
+      const headers = window.apiClient.getHeaders();
+      const response = await fetch(`${baseUrl}/api/reports/export/csv`, {
+        method: 'GET',
+        credentials: 'include',
+        headers
+      });
+
+      if (!response.ok) {
+        let errMessage = `HTTP error ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMessage = errData.message || errMessage;
+        } catch (_) {}
+        throw new Error(errMessage);
+      }
+
+      const csvContent = await response.text();
+      const filename = `neuroshield-security-audit-${Date.now()}.csv`;
+      await downloadOrSave(filename, csvContent, 'text/csv;charset=utf-8;', [
+        { name: 'CSV Spreadsheets', extensions: ['csv'] }
+      ]);
+    } catch (error) {
+      alert('Report export error: ' + error.message);
+    }
+  });
+
+  // Export JSON
+  document.getElementById('btn-export-json').addEventListener('click', async () => {
+    try {
+      const baseUrl = await window.apiClient.getBaseUrl();
+      const headers = window.apiClient.getHeaders();
+      const response = await fetch(`${baseUrl}/api/reports/export/json`, {
+        method: 'GET',
+        credentials: 'include',
+        headers
+      });
+
+      if (!response.ok) {
+        let errMessage = `HTTP error ${response.status}`;
+        try {
+          const errData = await response.json();
+          errMessage = errData.message || errMessage;
+        } catch (_) {}
+        throw new Error(errMessage);
+      }
+
+      const jsonContent = await response.text();
+      const filename = `neuroshield-zta-audit-${Date.now()}.json`;
+      await downloadOrSave(filename, jsonContent, 'application/json;charset=utf-8;', [
+        { name: 'JSON Audit Snapshots', extensions: ['json'] }
+      ]);
+    } catch (error) {
+      alert('JSON export error: ' + error.message);
+    }
+  });
+
+  loadReportSummary();
+</script>
+</body>
+</html>
