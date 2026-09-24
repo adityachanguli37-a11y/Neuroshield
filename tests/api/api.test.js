@@ -823,19 +823,41 @@ describe('Employee Dashboard Scoping & FIM Restrictions', () => {
     expect(threatRes.body.threatPrediction.currentState).toBeDefined();
   });
 
-  test('Forgotten password can be reset via POST /api/auth/reset-password and used to authenticate', async () => {
-    // 1. Reset password for employee
+  test('Forgotten password can be reset via two-step identity verification and used to authenticate', async () => {
+    // Step 1: Verify identity with email + name
+    const verifyRes = await request(routeApp)
+      .post('/api/auth/verify-identity')
+      .send({
+        email: 'emptest@neuroshield.local',
+        name: 'Employee Test User'
+      });
+
+    expect(verifyRes.statusCode).toBe(200);
+    expect(verifyRes.body.verified).toBe(true);
+    expect(verifyRes.body.userName).toBe('Employee Test User');
+
+    // Step 1b: Wrong name should fail
+    const badVerify = await request(routeApp)
+      .post('/api/auth/verify-identity')
+      .send({
+        email: 'emptest@neuroshield.local',
+        name: 'Wrong Person Name'
+      });
+    expect(badVerify.statusCode).toBe(403);
+
+    // Step 2: Reset password with verified identity
     const resetRes = await request(routeApp)
       .post('/api/auth/reset-password')
       .send({
         email: 'emptest@neuroshield.local',
+        name: 'Employee Test User',
         newPassword: 'BrandNewPassword99!'
       });
 
     expect(resetRes.statusCode).toBe(200);
     expect(resetRes.body.message).toContain('Password reset successfully');
 
-    // 2. Old password fails
+    // 3. Old password fails
     const oldLogin = await request(routeApp)
       .post('/api/auth/login')
       .send({
@@ -844,7 +866,7 @@ describe('Employee Dashboard Scoping & FIM Restrictions', () => {
       });
     expect(oldLogin.statusCode).toBe(401);
 
-    // 3. New password succeeds
+    // 4. New password succeeds
     const newLogin = await request(routeApp)
       .post('/api/auth/login')
       .send({

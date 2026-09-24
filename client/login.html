@@ -1,9 +1,10 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NeuroShield — Terminal Authentication Gateway</title>
+  <title>NeuroShield Terminal Authentication Gateway</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/components.css">
   <style>
@@ -187,6 +188,7 @@
     }
   </style>
 </head>
+
 <body class="terminal-grid-bg scanlines">
 
   <!-- Ambient Glow in Corners -->
@@ -199,9 +201,10 @@
       <div class="brand-header">
         <div class="brand-logo-emblem">
           <!-- Cyber Shield SVG -->
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-            <path d="M9 12l2 2 4-4"/>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M9 12l2 2 4-4" />
           </svg>
         </div>
         <div>
@@ -220,49 +223,100 @@
       <form id="login-form">
         <div class="form-group">
           <label for="email">[ IDENTITY // USER EMAIL ]</label>
-          <input type="email" id="email" class="form-control" placeholder="admin@neuroshield.local" required autocomplete="username">
+          <input type="email" id="email" class="form-control" placeholder="[EMAIL_ADDRESS]" required
+            autocomplete="username">
         </div>
 
         <div class="form-group">
           <label for="password">[ ACCESS TOKEN // PASSWORD ]</label>
-          <input type="password" id="password" class="form-control" placeholder="••••••••••••" required autocomplete="current-password">
+          <input type="password" id="password" class="form-control" placeholder="••••••••••••••" required
+            autocomplete="current-password">
         </div>
 
-        <button type="submit" id="btn-submit" class="btn btn-primary" style="width: 100%; margin-top: 6px; padding: 11px;">
-          ⚡ AUTHENTICATE & ENTER SOC
+        <button type="submit" id="btn-submit" class="btn btn-primary"
+          style="width: 100%; margin-top: 6px; padding: 11px;">
+          AUTHENTICATE & ENTER SOC
         </button>
 
         <div style="display: flex; justify-content: flex-end; margin-top: 10px;">
-          <a href="#" id="link-forgot-password" style="font-family: var(--font-mono); font-size: 10px; color: var(--cyber-cyan); text-decoration: none; letter-spacing: 0.5px;">
-            🔑 [ FORGOT PASSWORD? RESET CREDENTIALS ]
+          <a href="#" id="link-forgot-password"
+            style="font-family: var(--font-mono); font-size: 10px; color: var(--cyber-cyan); text-decoration: none; letter-spacing: 0.5px;">
+            [ FORGOT PASSWORD? RESET CREDENTIALS ]
           </a>
         </div>
       </form>
 
-      <!-- Recover Identity Drawer -->
-      <div id="forgot-password-panel" style="display: none; margin-top: 16px; padding: 16px; background: rgba(9, 14, 22, 0.95); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: var(--border-radius-sm); box-shadow: 0 0 16px rgba(0, 229, 255, 0.15);">
-        <div style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--cyber-cyan); margin-bottom: 10px; letter-spacing: 1px;">
-          // RECOVER IDENTITY & SET NEW PASSWORD //
+      <!-- Recover Identity Drawer (Two-Step Verification) -->
+      <div id="forgot-password-panel"
+        style="display: none; margin-top: 16px; padding: 16px; background: rgba(9, 14, 22, 0.95); border: 1px solid rgba(0, 229, 255, 0.35); border-radius: var(--border-radius-sm); box-shadow: 0 0 16px rgba(0, 229, 255, 0.15);">
+
+        <!-- STEP 1: Identity Verification -->
+        <div id="reset-step-1">
+          <div
+            style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--cyber-cyan); margin-bottom: 10px; letter-spacing: 1px;">
+            // STEP 1 &#8212; VERIFY YOUR IDENTITY //
+          </div>
+          <form id="verify-identity-form">
+            <div class="form-group" style="margin-bottom: 10px;">
+              <label for="reset-email" style="font-size: 10px;">[ REGISTERED CORPORATE EMAIL ]</label>
+              <input type="email" id="reset-email" class="form-control" placeholder="e.g. employee@neuroshield.local"
+                required style="padding: 7px 10px; font-size: 12px;">
+            </div>
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label for="reset-name" style="font-size: 10px;">[ FULL NAME ON ACCOUNT ]</label>
+              <input type="text" id="reset-name" class="form-control" placeholder="e.g. Rachel Green" required
+                style="padding: 7px 10px; font-size: 12px;">
+            </div>
+            <div id="verify-msg"
+              style="display: none; font-family: var(--font-mono); font-size: 11px; padding: 8px 10px; border-radius: 3px; margin-bottom: 10px;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="submit" id="btn-verify-identity" class="btn btn-primary"
+                style="flex: 1; padding: 7px; font-size: 11px;">
+                &#128269; VERIFY IDENTITY
+              </button>
+              <button type="button" id="btn-cancel-reset" class="btn btn-secondary"
+                style="padding: 7px 12px; font-size: 11px;">
+                CANCEL
+              </button>
+            </div>
+          </form>
         </div>
-        <form id="reset-password-form">
-          <div class="form-group" style="margin-bottom: 10px;">
-            <label for="reset-email" style="font-size: 10px;">[ REGISTERED CORPORATE EMAIL ]</label>
-            <input type="email" id="reset-email" class="form-control" placeholder="e.g. employee@neuroshield.local" required style="padding: 7px 10px; font-size: 12px;">
+
+        <!-- STEP 2: Set New Password (hidden until identity verified) -->
+        <div id="reset-step-2" style="display: none;">
+          <div
+            style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--neon-green); margin-bottom: 4px; letter-spacing: 1px;">
+            &#10003; IDENTITY VERIFIED
           </div>
-          <div class="form-group" style="margin-bottom: 12px;">
-            <label for="reset-new-password" style="font-size: 10px;">[ NEW ACCESS PASSWORD ]</label>
-            <input type="password" id="reset-new-password" class="form-control" placeholder="Minimum 6 characters" required style="padding: 7px 10px; font-size: 12px;">
+          <div id="verified-name-display"
+            style="font-family: var(--font-mono); font-size: 10px; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 0.5px;">
           </div>
-          <div id="reset-msg" style="display: none; font-family: var(--font-mono); font-size: 11px; padding: 8px 10px; border-radius: 3px; margin-bottom: 10px;"></div>
-          <div style="display: flex; gap: 8px;">
-            <button type="submit" id="btn-submit-reset" class="btn btn-primary" style="flex: 1; padding: 7px; font-size: 11px;">
-              ⚡ RESET PASSWORD
-            </button>
-            <button type="button" id="btn-cancel-reset" class="btn btn-secondary" style="padding: 7px 12px; font-size: 11px;">
-              CANCEL
-            </button>
+          <div
+            style="font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: var(--cyber-cyan); margin-bottom: 10px; letter-spacing: 1px;">
+            // STEP 2 &#8212; SET NEW PASSWORD //
           </div>
-        </form>
+          <form id="reset-password-form">
+            <div class="form-group" style="margin-bottom: 12px;">
+              <label for="reset-new-password" style="font-size: 10px;">[ NEW ACCESS PASSWORD ]</label>
+              <input type="password" id="reset-new-password" class="form-control" placeholder="Minimum 6 characters"
+                required style="padding: 7px 10px; font-size: 12px;">
+            </div>
+            <div id="reset-msg"
+              style="display: none; font-family: var(--font-mono); font-size: 11px; padding: 8px 10px; border-radius: 3px; margin-bottom: 10px;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button type="submit" id="btn-submit-reset" class="btn btn-primary"
+                style="flex: 1; padding: 7px; font-size: 11px;">
+                &#9889; RESET PASSWORD
+              </button>
+              <button type="button" id="btn-back-step1" class="btn btn-secondary"
+                style="padding: 7px 12px; font-size: 11px;">
+                &#8592; BACK
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
 
       <!-- 1-Click Fast SOC Access -->
@@ -273,28 +327,28 @@
         </div>
         <div class="demo-grid">
           <button type="button" class="btn-demo-credential btn-demo-login" data-email="admin@neuroshield.local">
-            <span class="role-title">🛡️ SOC Admin</span>
-            <span class="role-tag" style="color: var(--cyber-cyan);">ADMIN • Full Clearance</span>
+            <span class="role-title">&#128737;&#65039; SOC Admin</span>
+            <span class="role-tag" style="color: var(--cyber-cyan);">ADMIN &#8226; Full Clearance</span>
           </button>
           <button type="button" class="btn-demo-credential btn-demo-login" data-email="ciso@neuroshield.local">
-            <span class="role-title">👔 CISO Executive</span>
-            <span class="role-tag" style="color: var(--neon-purple);">ADMIN • Security Chief</span>
+            <span class="role-title">&#128084; CISO Executive</span>
+            <span class="role-tag" style="color: var(--neon-purple);">ADMIN &#8226; Security Chief</span>
           </button>
           <button type="button" class="btn-demo-credential btn-demo-login" data-email="analyst@neuroshield.local">
-            <span class="role-title">🔍 Threat Analyst</span>
-            <span class="role-tag" style="color: var(--warning-orange);">ANALYST • Hunt & Triage</span>
+            <span class="role-title">&#128269; Threat Analyst</span>
+            <span class="role-tag" style="color: var(--warning-orange);">ANALYST &#8226; Hunt &amp; Triage</span>
           </button>
           <button type="button" class="btn-demo-credential btn-demo-login" data-email="devops@neuroshield.local">
-            <span class="role-title">💻 DevOps Lead</span>
-            <span class="role-tag" style="color: var(--neon-green);">EMPLOYEE • Cloud Sec</span>
+            <span class="role-title">&#128187; DevOps Lead</span>
+            <span class="role-tag" style="color: var(--neon-green);">EMPLOYEE &#8226; Cloud Sec</span>
           </button>
           <button type="button" class="btn-demo-credential btn-demo-login" data-email="insider@neuroshield.local">
-            <span class="role-title">⚠️ Suspicious Insider</span>
-            <span class="role-tag" style="color: var(--danger-red);">SUSPENDED • Anomaly</span>
+            <span class="role-title">&#9888;&#65039; Suspicious Insider</span>
+            <span class="role-tag" style="color: var(--danger-red);">SUSPENDED &#8226; Anomaly</span>
           </button>
           <button type="button" class="btn-demo-credential btn-demo-login" data-email="employee@neuroshield.local">
-            <span class="role-title">👤 Standard User</span>
-            <span class="role-tag" style="color: var(--neon-green);">EMPLOYEE • Baseline</span>
+            <span class="role-title">&#128100; Standard User</span>
+            <span class="role-tag" style="color: var(--neon-green);">EMPLOYEE &#8226; Baseline</span>
           </button>
         </div>
       </div>
@@ -323,7 +377,7 @@
         errorBox.textContent = `[ AUTH_FAIL ]: ${err.message || 'Authentication failed. Please verify credentials.'}`;
         errorBox.style.display = 'block';
         btnSubmit.disabled = false;
-        btnSubmit.textContent = '⚡ AUTHENTICATE & ENTER SOC';
+        btnSubmit.textContent = 'âš¡ AUTHENTICATE & ENTER SOC';
       }
     }
 
@@ -344,29 +398,89 @@
       });
     });
 
-    // Forgot Password Panel Toggle & Handler
+    // --- Two-Step Forgot Password Flow ---
     const linkForgot = document.getElementById('link-forgot-password');
     const panelForgot = document.getElementById('forgot-password-panel');
+    const resetStep1 = document.getElementById('reset-step-1');
+    const resetStep2 = document.getElementById('reset-step-2');
     const btnCancelReset = document.getElementById('btn-cancel-reset');
+    const btnBackStep1 = document.getElementById('btn-back-step1');
+    const formVerify = document.getElementById('verify-identity-form');
     const formReset = document.getElementById('reset-password-form');
+    const verifyMsg = document.getElementById('verify-msg');
     const resetMsg = document.getElementById('reset-msg');
+
+    // Verified identity data retained between steps
+    let verifiedEmail = '';
+    let verifiedName = '';
+
+    function resetDrawerState() {
+      panelForgot.style.display = 'none';
+      resetStep1.style.display = 'block';
+      resetStep2.style.display = 'none';
+      formVerify.reset();
+      formReset.reset();
+      verifyMsg.style.display = 'none';
+      resetMsg.style.display = 'none';
+      verifiedEmail = '';
+      verifiedName = '';
+    }
 
     linkForgot.addEventListener('click', (e) => {
       e.preventDefault();
-      panelForgot.style.display = panelForgot.style.display === 'none' ? 'block' : 'none';
-      if (panelForgot.style.display === 'block') {
+      if (panelForgot.style.display === 'none') {
+        resetDrawerState();
+        panelForgot.style.display = 'block';
         const currentEmail = document.getElementById('email').value.trim();
         if (currentEmail) document.getElementById('reset-email').value = currentEmail;
-        document.getElementById('reset-new-password').focus();
+        document.getElementById('reset-email').focus();
+      } else {
+        resetDrawerState();
       }
     });
 
-    btnCancelReset.addEventListener('click', () => {
-      panelForgot.style.display = 'none';
-      formReset.reset();
+    btnCancelReset.addEventListener('click', () => resetDrawerState());
+    btnBackStep1.addEventListener('click', () => {
+      resetStep2.style.display = 'none';
+      resetStep1.style.display = 'block';
       resetMsg.style.display = 'none';
     });
 
+    // STEP 1: Verify identity (email + name)
+    formVerify.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      verifyMsg.style.display = 'none';
+      const btnVerify = document.getElementById('btn-verify-identity');
+      btnVerify.disabled = true;
+      btnVerify.textContent = 'VERIFYING...';
+
+      const email = document.getElementById('reset-email').value.trim();
+      const name = document.getElementById('reset-name').value.trim();
+
+      try {
+        const res = await window.apiClient.post('/api/auth/verify-identity', { email, name });
+        verifiedEmail = email;
+        verifiedName = res.userName || name;
+
+        // Show success and transition to step 2
+        document.getElementById('verified-name-display').textContent =
+          `Welcome back, ${verifiedName}. Please set your new password.`;
+        resetStep1.style.display = 'none';
+        resetStep2.style.display = 'block';
+        document.getElementById('reset-new-password').focus();
+      } catch (err) {
+        verifyMsg.style.display = 'block';
+        verifyMsg.style.background = 'rgba(255, 59, 92, 0.15)';
+        verifyMsg.style.border = '1px solid var(--danger-red)';
+        verifyMsg.style.color = '#ff99b3';
+        verifyMsg.textContent = `[ VERIFICATION FAILED ]: ${err.message || 'Identity could not be verified. Check your email and name.'}`;
+      } finally {
+        btnVerify.disabled = false;
+        btnVerify.textContent = 'ðŸ” VERIFY IDENTITY';
+      }
+    });
+
+    // STEP 2: Reset password (using verified identity)
     formReset.addEventListener('submit', async (e) => {
       e.preventDefault();
       resetMsg.style.display = 'none';
@@ -374,26 +488,25 @@
       btnSubmit.disabled = true;
       btnSubmit.textContent = 'RESETTING...';
 
-      const email = document.getElementById('reset-email').value.trim();
       const newPassword = document.getElementById('reset-new-password').value;
 
       try {
-        const res = await window.apiClient.post('/api/auth/reset-password', { email, newPassword });
+        const res = await window.apiClient.post('/api/auth/reset-password', {
+          email: verifiedEmail,
+          name: verifiedName,
+          newPassword
+        });
         resetMsg.style.display = 'block';
         resetMsg.style.background = 'rgba(0, 255, 136, 0.1)';
         resetMsg.style.border = '1px solid var(--neon-green)';
         resetMsg.style.color = 'var(--neon-green)';
         resetMsg.textContent = res.message || 'Password reset successfully! You can now log in.';
 
-        // Populate login fields
-        document.getElementById('email').value = email;
+        // Populate login fields for convenience
+        document.getElementById('email').value = verifiedEmail;
         document.getElementById('password').value = newPassword;
 
-        setTimeout(() => {
-          panelForgot.style.display = 'none';
-          formReset.reset();
-          resetMsg.style.display = 'none';
-        }, 1800);
+        setTimeout(() => resetDrawerState(), 2000);
       } catch (err) {
         resetMsg.style.display = 'block';
         resetMsg.style.background = 'rgba(255, 59, 92, 0.15)';
@@ -402,9 +515,10 @@
         resetMsg.textContent = `[ ERROR ]: ${err.message || 'Failed to reset password.'}`;
       } finally {
         btnSubmit.disabled = false;
-        btnSubmit.textContent = '⚡ RESET PASSWORD';
+        btnSubmit.textContent = 'âš¡ RESET PASSWORD';
       }
     });
   </script>
 </body>
+
 </html>

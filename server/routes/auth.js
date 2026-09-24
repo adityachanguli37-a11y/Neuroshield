@@ -166,15 +166,63 @@ router.post('/logout', authenticate, async (req, res) => {
   return res.json({ message: 'Logged out successfully' });
 });
 
-// POST /api/auth/reset-password - Self-service password reset if forgotten
-router.post('/reset-password', authLimiter, async (req, res, next) => {
+// POST /api/auth/verify-identity - Step 1: Verify email + name before reset
+router.post('/verify-identity', authLimiter, async (req, res, next) => {
   try {
-    const { email, newPassword } = req.body;
+    const { email, name } = req.body;
 
-    if (!email || !newPassword) {
+    if (!email || !name) {
       return res.status(400).json({
         error: 'Bad Request',
-        message: 'Corporate email and new password are required.'
+        message: 'Corporate email and full name are required for identity verification.'
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'No account associated with that corporate email address.'
+      });
+    }
+
+    // Case-insensitive name comparison
+    if (user.name.toLowerCase().trim() !== name.toLowerCase().trim()) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Identity verification failed. The name does not match the registered identity.'
+      });
+    }
+
+    try {
+      await AuditLog.create({
+        userId: user._id,
+        userName: user.name,
+        action: 'IDENTITY_VERIFIED_FOR_RESET',
+        resource: 'Auth',
+        resourceId: user._id.toString()
+      });
+    } catch (e) {}
+
+    return res.json({
+      message: 'Identity verified successfully. You may now set a new password.',
+      verified: true,
+      userName: user.name
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/reset-password - Step 2: Set new password after identity verification
+router.post('/reset-password', authLimiter, async (req, res, next) => {
+  try {
+    const { email, name, newPassword } = req.body;
+
+    if (!email || !name || !newPassword) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Corporate email, full name, and new password are all required.'
       });
     }
 
@@ -190,6 +238,14 @@ router.post('/reset-password', authLimiter, async (req, res, next) => {
       return res.status(404).json({
         error: 'Not Found',
         message: 'No account associated with that corporate email address.'
+      });
+    }
+
+    // Re-verify identity before allowing password change
+    if (user.name.toLowerCase().trim() !== name.toLowerCase().trim()) {
+      return res.status(403).json({
+        error: 'Forbidden',
+        message: 'Identity verification failed. Password reset denied.'
       });
     }
 
