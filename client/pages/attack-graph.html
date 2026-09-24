@@ -6,70 +6,113 @@
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/components.css">
   <style>
+    body {
+      padding: 24px;
+      background: transparent;
+      color: var(--text-primary);
+    }
+
+    .graph-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .graph-title {
+      font-family: var(--font-mono);
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
     .graph-controls {
       display: flex;
       align-items: center;
-      gap: 12px;
-      margin-bottom: 16px;
+      gap: 10px;
+      margin-bottom: 14px;
       flex-wrap: wrap;
+      font-family: var(--font-mono);
     }
+
     .legend-chip {
       display: inline-flex;
       align-items: center;
       gap: 6px;
       padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 11px;
-      font-weight: 600;
-      background: rgba(18, 23, 34, 0.9);
-      border: 1px solid var(--border-color);
+      border-radius: var(--border-radius-sm);
+      font-size: 10px;
+      font-weight: 700;
+      background: rgba(11, 17, 25, 0.9);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      font-family: var(--font-mono);
     }
+
     .legend-dot {
-      width: 10px;
-      height: 10px;
+      width: 8px;
+      height: 8px;
       border-radius: 50%;
     }
+
     .mitre-badge {
       display: inline-block;
-      background: rgba(0, 240, 255, 0.12);
-      border: 1px solid var(--accent-cyan);
-      color: var(--accent-cyan);
+      background: rgba(0, 229, 255, 0.12);
+      border: 1px solid var(--cyber-cyan);
+      color: var(--cyber-cyan);
       font-size: 10px;
       padding: 2px 6px;
-      border-radius: 4px;
-      font-family: monospace;
+      border-radius: 3px;
+      font-family: var(--font-mono);
       font-weight: 700;
     }
   </style>
 </head>
-<body style="padding: 24px; background: var(--bg-primary);">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
-    <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary);">Interactive Cyber Attack Graph</h1>
+<body>
+  <div class="graph-header">
+    <div class="graph-title">
+      <span class="system-pulse"></span>
+      INTERACTIVE CYBER ATTACK DEPENDENCY GRAPH
+    </div>
     <div style="display: flex; gap: 8px;">
-      <button id="btn-propagate-attack" class="btn btn-primary" style="font-size: 12px; padding: 8px 16px;">⚡ SIMULATE ATTACK PROPAGATION</button>
-      <button id="btn-reset-graph" class="btn btn-secondary" style="font-size: 12px; padding: 8px 14px;">🔄 RESET GRAPH</button>
+      <button id="btn-propagate-attack" class="btn btn-primary" style="font-size: 11px; padding: 7px 14px;">
+        ⚡ SIMULATE ATTACK PROPAGATION
+      </button>
+      <button id="btn-reset-graph" class="btn btn-secondary" style="font-size: 11px; padding: 7px 12px;">
+        🔄 RESET TOPOLOGY
+      </button>
     </div>
   </div>
-  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
-    Dynamic cyber attack dependency graph with draggable nodes, MITRE ATT&CK mapping, and animated Markov threat path propagation.
+  <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-bottom: 18px;">
+    > Dynamic network dependency visualization with draggable assets, MITRE ATT&CK technique mapping, and stochastic threat propagation paths.
   </p>
 
-  <div class="glass-panel" style="padding: 20px;">
+  <div class="glass-panel" style="padding: 18px;">
+    <div class="cyber-panel-header" style="margin: -18px -18px 14px -18px; padding: 10px 16px;">
+      <span>// NETWORK TOPOLOGY & THREAT REACHABILITY //</span>
+      <span class="indicator"><span class="system-pulse"></span> ENGINE ONLINE</span>
+    </div>
+
     <div class="graph-controls">
-      <div style="font-size: 12px; color: var(--text-secondary); margin-right: 8px;">Drag nodes to rearrange topology. Click to inspect assets.</div>
-      <div class="legend-chip"><span class="legend-dot" style="background: #00e676; box-shadow: 0 0 6px #00e676;"></span> SAFE</div>
-      <div class="legend-chip"><span class="legend-dot" style="background: #ffb703; box-shadow: 0 0 6px #ffb703;"></span> SUSPICIOUS</div>
-      <div class="legend-chip"><span class="legend-dot" style="background: #ff3366; box-shadow: 0 0 8px #ff3366;"></span> COMPROMISED / BOTTLENECK</div>
+      <div style="font-size: 11px; color: var(--text-secondary); margin-right: 8px;">[ INTERACTION ]: Drag nodes to reorganize topology. Click to inspect asset telemetry.</div>
+      <div class="legend-chip"><span class="legend-dot" style="background: var(--neon-green); box-shadow: 0 0 8px var(--neon-green);"></span> [ SAFE ]</div>
+      <div class="legend-chip"><span class="legend-dot" style="background: var(--warning-orange); box-shadow: 0 0 8px var(--warning-orange);"></span> [ SUSPICIOUS ]</div>
+      <div class="legend-chip"><span class="legend-dot" style="background: var(--danger-red); box-shadow: 0 0 10px var(--danger-red);"></span> [ COMPROMISED / BOTTLENECK ]</div>
     </div>
 
     <!-- HTML5 Canvas Visualizer -->
     <div style="position: relative; width: 100%;">
-      <canvas id="attack-graph-canvas" width="1120" height="440" style="width: 100%; border: 1px solid var(--border-color); border-radius: 8px; background: radial-gradient(circle at center, #101624 0%, #080b11 100%); cursor: grab;"></canvas>
+      <canvas id="attack-graph-canvas" width="1120" height="420" style="width: 100%; border: 1px solid rgba(0, 229, 255, 0.2); border-radius: var(--border-radius-sm); background: #06090e; cursor: grab; box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);"></canvas>
     </div>
 
     <!-- Node Detail Inspector -->
-    <div id="node-details" style="margin-top: 16px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 6px; font-size: 12px; color: var(--text-secondary);">
-      <div style="color: var(--text-muted);">Click on any node in the graph above to inspect asset vulnerability details, MITRE ATT&CK techniques, and zero-trust controls.</div>
+    <div id="node-details" style="margin-top: 14px; padding: 14px 16px; background: rgba(9, 14, 22, 0.85); border: 1px solid rgba(0, 229, 255, 0.18); border-radius: var(--border-radius-sm); font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">
+      <div style="color: var(--text-muted);">> Select any node in the topology above to inspect vulnerability metrics, MITRE techniques, and zero-trust controls.</div>
     </div>
   </div>
 
@@ -79,13 +122,13 @@
   const ctx = canvas.getContext('2d');
 
   let nodes = [
-    { id: 'N-USER', name: 'User Identity', x: 80, y: 220, risk: 25, status: 'SAFE', type: 'USER', mitre: 'T1566', cve: 'N/A', mitigation: 'FIDO2 WebAuthn MFA' },
-    { id: 'N-INIT', name: 'Workstation Gateway', x: 250, y: 130, risk: 35, status: 'SAFE', type: 'INITIAL_ACCESS', mitre: 'T1059', cve: 'CVE-2024-21413', mitigation: 'AppLocker & EDR' },
-    { id: 'N-END', name: 'Endpoint PC', x: 420, y: 220, risk: 45, status: 'SAFE', type: 'ENDPOINT', mitre: 'T1003', cve: 'CVE-2023-36884', mitigation: 'Credential Guard' },
-    { id: 'N-CRED', name: 'Domain Cache Credentials', x: 590, y: 130, risk: 65, status: 'SAFE', type: 'CREDENTIAL', mitre: 'T1550', cve: 'N/A', mitigation: 'LAPS & Protected Users' },
-    { id: 'N-LAT', name: 'App Server', x: 760, y: 220, risk: 75, status: 'SAFE', type: 'LATERAL_ASSET', mitre: 'T1021', cve: 'CVE-2023-44487', mitigation: 'Microsegmentation' },
-    { id: 'N-PRIV', name: 'Domain Admin DC', x: 920, y: 130, risk: 85, status: 'SAFE', type: 'PRIVILEGE_ASSET', mitre: 'T1558', cve: 'CVE-2024-38077', mitigation: 'Tiered Admin & JIT' },
-    { id: 'N-CRIT', name: 'Vault Database', x: 1040, y: 220, risk: 95, status: 'SAFE', type: 'CRITICAL_ASSET', mitre: 'T1048', cve: 'N/A', mitigation: 'Zero-Trust Token Enclave' }
+    { id: 'N-USER', name: 'User Identity', x: 80, y: 210, risk: 25, status: 'SAFE', type: 'USER', mitre: 'T1566', cve: 'N/A', mitigation: 'FIDO2 WebAuthn MFA' },
+    { id: 'N-INIT', name: 'Workstation Gateway', x: 250, y: 120, risk: 35, status: 'SAFE', type: 'INITIAL_ACCESS', mitre: 'T1059', cve: 'CVE-2024-21413', mitigation: 'AppLocker & EDR' },
+    { id: 'N-END', name: 'Endpoint PC', x: 420, y: 210, risk: 45, status: 'SAFE', type: 'ENDPOINT', mitre: 'T1003', cve: 'CVE-2023-36884', mitigation: 'Credential Guard' },
+    { id: 'N-CRED', name: 'Domain Cache Credentials', x: 590, y: 120, risk: 65, status: 'SAFE', type: 'CREDENTIAL', mitre: 'T1550', cve: 'N/A', mitigation: 'LAPS & Protected Users' },
+    { id: 'N-LAT', name: 'App Server', x: 760, y: 210, risk: 75, status: 'SAFE', type: 'LATERAL_ASSET', mitre: 'T1021', cve: 'CVE-2023-44487', mitigation: 'Microsegmentation' },
+    { id: 'N-PRIV', name: 'Domain Admin DC', x: 920, y: 120, risk: 85, status: 'SAFE', type: 'PRIVILEGE_ASSET', mitre: 'T1558', cve: 'CVE-2024-38077', mitigation: 'Tiered Admin & JIT' },
+    { id: 'N-CRIT', name: 'Vault Database', x: 1040, y: 210, risk: 95, status: 'SAFE', type: 'CRITICAL_ASSET', mitre: 'T1048', cve: 'N/A', mitigation: 'Zero-Trust Token Enclave' }
   ];
 
   let edges = [
@@ -104,11 +147,8 @@
   async function loadGraphData() {
     try {
       const nodesRes = await window.apiClient.get('/api/attack-graph/nodes');
-      const edgesRes = await window.apiClient.get('/api/attack-graph/edges');
-
       if (nodesRes.nodes && nodesRes.nodes.length > 0) {
-        // preserve coordinates
-        nodesRes.nodes.forEach((n, idx) => {
+        nodesRes.nodes.forEach(n => {
           const match = nodes.find(old => old.id === n.nodeId);
           if (match) {
             match.status = n.status || match.status;
@@ -124,16 +164,16 @@
   function drawGraph() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // Draw grid lines for high-tech aesthetic
-    ctx.strokeStyle = 'rgba(38, 51, 77, 0.2)';
+    // Digital grid lines
+    ctx.strokeStyle = 'rgba(0, 229, 255, 0.05)';
     ctx.lineWidth = 1;
-    for (let x = 0; x < canvas.width; x += 40) {
+    for (let x = 0; x < canvas.width; x += 35) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
       ctx.lineTo(x, canvas.height);
       ctx.stroke();
     }
-    for (let y = 0; y < canvas.height; y += 40) {
+    for (let y = 0; y < canvas.height; y += 35) {
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(canvas.width, y);
@@ -150,14 +190,14 @@
         ctx.lineTo(tgtNode.x, tgtNode.y);
 
         const isCompromisedPath = srcNode.status === 'COMPROMISED' && tgtNode.status === 'COMPROMISED';
-        ctx.strokeStyle = isCompromisedPath ? '#ff3366' : '#26334d';
-        ctx.lineWidth = isCompromisedPath ? 3 : 2;
+        ctx.strokeStyle = isCompromisedPath ? '#FF3B5C' : 'rgba(0, 229, 255, 0.22)';
+        ctx.lineWidth = isCompromisedPath ? 3 : 1.5;
         ctx.stroke();
 
         // Edge label
         const midX = (srcNode.x + tgtNode.x) / 2;
         const midY = (srcNode.y + tgtNode.y) / 2 - 8;
-        ctx.fillStyle = '#00f0ff';
+        ctx.fillStyle = '#00E5FF';
         ctx.font = '10px monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`P=${edge.prob}`, midX, midY);
@@ -168,9 +208,9 @@
           const py = srcNode.y + (tgtNode.y - srcNode.y) * pulseWave.progress;
           ctx.beginPath();
           ctx.arc(px, py, 6, 0, 2 * Math.PI);
-          ctx.fillStyle = '#ff3366';
-          ctx.shadowColor = '#ff3366';
-          ctx.shadowBlur = 12;
+          ctx.fillStyle = '#FF3B5C';
+          ctx.shadowColor = '#FF3B5C';
+          ctx.shadowBlur = 14;
           ctx.fill();
           ctx.shadowBlur = 0;
         }
@@ -182,13 +222,13 @@
       ctx.beginPath();
       ctx.arc(node.x, node.y, 22, 0, 2 * Math.PI);
 
-      let fillColor = '#00e676';
-      if (node.status === 'SUSPICIOUS') fillColor = '#ffb703';
-      if (node.status === 'COMPROMISED') fillColor = '#ff3366';
+      let fillColor = '#00FF88';
+      if (node.status === 'SUSPICIOUS') fillColor = '#FFB020';
+      if (node.status === 'COMPROMISED') fillColor = '#FF3B5C';
 
       ctx.fillStyle = fillColor;
       ctx.shadowColor = fillColor;
-      ctx.shadowBlur = node === selectedNode ? 18 : 8;
+      ctx.shadowBlur = node === selectedNode ? 20 : 10;
       ctx.fill();
       ctx.shadowBlur = 0;
 
@@ -197,19 +237,19 @@
       ctx.stroke();
 
       // MITRE Tag above
-      ctx.fillStyle = '#00f0ff';
-      ctx.font = '9px monospace';
+      ctx.fillStyle = '#00E5FF';
+      ctx.font = '10px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(`[${node.mitre}]`, node.x, node.y - 28);
 
       // Node Name below
-      ctx.fillStyle = '#f0f4fc';
-      ctx.font = 'bold 11px sans-serif';
+      ctx.fillStyle = '#E8F1F8';
+      ctx.font = 'bold 11px monospace';
       ctx.fillText(node.name, node.x, node.y + 36);
 
       // Risk score
-      ctx.fillStyle = '#8e9aaf';
-      ctx.font = '10px sans-serif';
+      ctx.fillStyle = '#8A9BAE';
+      ctx.font = '10px monospace';
       ctx.fillText(`Risk: ${node.risk}`, node.x, node.y + 48);
     });
   }
@@ -257,17 +297,17 @@
   function inspectNode(node) {
     document.getElementById('node-details').innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <span style="font-size: 14px; font-weight: 700; color: var(--accent-cyan);">${node.name} (${node.id})</span>
-        <span class="tag-severity tag-${node.status}">${node.status}</span>
+        <span style="font-size: 13px; font-weight: 700; color: var(--cyber-cyan);">${node.name} (${node.id})</span>
+        <span class="tag-severity tag-${node.status}">[ ${node.status} ]</span>
       </div>
-      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; font-size: 12px;">
-        <div><strong>Asset Type:</strong> ${node.type}</div>
-        <div><strong>Compromise Risk:</strong> ${node.risk}/100</div>
-        <div><strong>MITRE ATT&CK:</strong> <span class="mitre-badge">${node.mitre}</span></div>
-        <div><strong>Known Exploit:</strong> ${node.cve}</div>
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 8px; font-size: 11px;">
+        <div><strong>[ ASSET TYPE ]:</strong> ${node.type}</div>
+        <div><strong>[ RISK SCORE ]:</strong> ${node.risk}/100</div>
+        <div><strong>[ MITRE ATT&CK ]:</strong> <span class="mitre-badge">${node.mitre}</span></div>
+        <div><strong>[ EXPLOIT REF ]:</strong> ${node.cve}</div>
       </div>
-      <div style="margin-top: 10px; font-size: 12px;">
-        <strong>Zero-Trust Countermeasure:</strong> <span style="color: var(--accent-green);">${node.mitre ? node.mitigation : 'Multi-Factor Enforcement'}</span>
+      <div style="margin-top: 10px; font-size: 11px;">
+        <strong>[ ZERO-TRUST MITIGATION ]:</strong> <span style="color: var(--neon-green);">${node.mitre ? node.mitigation : 'Multi-Factor Enforcement'}</span>
       </div>
     `;
   }
@@ -280,7 +320,6 @@
     pulseWave.currentEdgeIndex = 0;
     pulseWave.progress = 0;
 
-    // Reset nodes to safe
     nodes.forEach(n => n.status = 'SAFE');
     nodes[0].status = 'SUSPICIOUS';
 

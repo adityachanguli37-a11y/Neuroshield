@@ -5,61 +5,99 @@
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body {
+      padding: 24px;
+      background: transparent;
+      color: var(--text-primary);
+    }
+  </style>
 </head>
-<body style="padding: 24px; background: var(--bg-primary);">
-  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Layer 2: Adaptive Trust Engine</h1>
-  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Multi-factor weighted trust aggregation (Behavior 40%, Device 20%, Location 15%, Network 15%, Time 10%) & Fuzzy Logic rules.</p>
+<body>
+  <div style="margin-bottom: 20px;">
+    <h1 style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+      <span class="system-pulse"></span>
+      LAYER 02: ADAPTIVE TRUST ENGINE
+    </h1>
+    <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+      > Context-sensitive weighted trust aggregation (Behavior 40%, Device 20%, Location 15%, Network 15%, Time 10%) & Fuzzy Logic Rule Base.
+    </p>
+  </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
     <!-- Trust Score Matrix -->
-    <div class="glass-panel" style="padding: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Contextual Scores & Weights</h3>
+    <div class="glass-panel" style="padding: 20px;">
+      <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+        <span>// CONTEXTUAL SCORES & POLICIES //</span>
+        <span class="indicator"><span class="system-pulse"></span> AGGREGATION LIVE</span>
+      </div>
+
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Context Dimension</th>
-              <th>Weight</th>
-              <th>Score (0-100)</th>
+              <th>[ CONTEXT DIMENSION ]</th>
+              <th>[ WEIGHT ]</th>
+              <th>[ SCORE (0-100) ]</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td>Behavioral Biometrics</td><td><strong>40%</strong></td><td id="ts-behavior">85</td></tr>
-            <tr><td>Device Trust</td><td><strong>20%</strong></td><td id="ts-device">90</td></tr>
-            <tr><td>Geographic Location</td><td><strong>15%</strong></td><td id="ts-location">80</td></tr>
-            <tr><td>Network Security</td><td><strong>15%</strong></td><td id="ts-network">85</td></tr>
-            <tr><td>Temporal Context</td><td><strong>10%</strong></td><td id="ts-time">90</td></tr>
+            <tr>
+              <td>
+                Behavioral Biometrics
+                <small id="lbl-locked-profile" style="display: block; font-size: 9px; color: var(--neon-green); font-family: var(--font-mono);">[ 🔒 LOCKED BASELINE IN DB ]</small>
+              </td>
+              <td><code>40%</code></td>
+              <td id="ts-behavior" class="tech-value" style="color: var(--cyber-cyan);">85</td>
+            </tr>
+            <tr><td>Device Health & Trust</td><td><code>20%</code></td><td id="ts-device" class="tech-value" style="color: var(--neon-green);">90</td></tr>
+            <tr><td>Geographic Location</td><td><code>15%</code></td><td id="ts-location" class="tech-value">80</td></tr>
+            <tr><td>Network Security & IP</td><td><code>15%</code></td><td id="ts-network" class="tech-value">85</td></tr>
+            <tr><td>Temporal / Hour Context</td><td><code>10%</code></td><td id="ts-time" class="tech-value">90</td></tr>
           </tbody>
         </table>
       </div>
 
-      <div style="margin-top: 20px;" class="metric-card">
-        <div class="metric-title">Overall Adaptive Trust Score</div>
-        <div class="metric-value" id="val-trust-overall" style="color: var(--accent-green);">86.5/100</div>
-        <div class="metric-subtitle" id="txt-rba-action">RBA ACTION: NORMAL ACCESS</div>
+      <div style="margin-top: 16px;" class="metric-card">
+        <div class="metric-header">
+          <span class="metric-title">OVERALL ADAPTIVE TRUST SCORE</span>
+          <span class="metric-code">[ TRUST_AGGREGATE ]</span>
+        </div>
+        <div class="metric-value" id="val-trust-overall" style="color: var(--neon-green);">86.5/100</div>
+        <div class="metric-subtitle" id="txt-rba-action" style="font-size: 11px;">
+          <span class="system-pulse" style="width: 6px; height: 6px;"></span> RBA ACTION: NORMAL ACCESS
+        </div>
       </div>
     </div>
 
     <!-- Fuzzy Rules Table -->
-    <div class="glass-panel" style="padding: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Fuzzy Logic Inference Rule Base</h3>
+    <div class="glass-panel" style="padding: 20px;">
+      <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+        <span>// FUZZY LOGIC INFERENCE MATRIX //</span>
+        <span class="indicator"><span class="system-pulse"></span> INFERENCE READY</span>
+      </div>
+
       <div class="table-container">
         <table>
           <thead>
             <tr>
-              <th>Fuzzy Rule Description</th>
-              <th>Status</th>
-              <th>Weight</th>
+              <th>[ FUZZY RULE SPECIFICATION ]</th>
+              <th>[ STATUS ]</th>
+              <th>[ WEIGHT ]</th>
             </tr>
           </thead>
           <tbody id="tbl-fuzzy-rules">
-            <tr><td>R1: If Behavior Low & Network Low -> CRITICAL RISK</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.95</td></tr>
-            <tr><td>R2: If Device Low & Location Low -> LOW TRUST</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.85</td></tr>
-            <tr><td>R3: If Behavior High & Device High -> HIGH TRUST</td><td><span class="tag-severity tag-LOW" style="background:rgba(0,230,118,0.2);color:var(--accent-green);">TRUE</span></td><td>0.90</td></tr>
-            <tr><td>R4: If Behavior Medium or Network Medium -> MEDIUM TRUST</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.70</td></tr>
-            <tr><td>R5: If Time Low & Location Low -> ELEVATED RISK</td><td><span class="tag-severity tag-LOW">FALSE</span></td><td>0.80</td></tr>
+            <tr><td>R1: If Behavior Low & Network Low -> CRITICAL RISK</td><td><span class="tag-severity tag-LOW">[ FALSE ]</span></td><td><code>0.95</code></td></tr>
+            <tr><td>R2: If Device Low & Location Low -> LOW TRUST</td><td><span class="tag-severity tag-LOW">[ FALSE ]</span></td><td><code>0.85</code></td></tr>
+            <tr><td>R3: If Behavior High & Device High -> HIGH TRUST</td><td><span class="tag-severity tag-LOW" style="color: var(--neon-green);">[ TRUE ]</span></td><td><code>0.90</code></td></tr>
+            <tr><td>R4: If Behavior Medium or Network Medium -> MEDIUM TRUST</td><td><span class="tag-severity tag-LOW">[ FALSE ]</span></td><td><code>0.70</code></td></tr>
+            <tr><td>R5: If Time Low & Location Low -> ELEVATED RISK</td><td><span class="tag-severity tag-LOW">[ FALSE ]</span></td><td><code>0.80</code></td></tr>
           </tbody>
         </table>
+      </div>
+
+      <div style="margin-top: 16px; padding: 12px; background: rgba(9, 14, 22, 0.8); border: 1px solid rgba(0, 229, 255, 0.15); border-radius: var(--border-radius-sm); font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); line-height: 1.5;">
+        > Fuzzy membership functions dynamically calculate continuous degrees of truth for real-time authentication challenge decisions.
       </div>
     </div>
   </div>
@@ -78,15 +116,15 @@
         document.getElementById('ts-network').textContent = t.networkScore;
         document.getElementById('ts-time').textContent = t.timeScore;
         document.getElementById('val-trust-overall').textContent = `${t.overallTrust}/100`;
-        document.getElementById('txt-rba-action').textContent = `RBA ACTION: ${t.authenticationAction} (${t.trustLevel})`;
+        document.getElementById('txt-rba-action').innerHTML = `<span class="system-pulse" style="width: 6px; height: 6px;"></span> RBA ACTION: ${t.authenticationAction} [ ${t.trustLevel} ]`;
 
         if (t.fuzzyRules && t.fuzzyRules.length > 0) {
           const tbody = document.getElementById('tbl-fuzzy-rules');
           tbody.innerHTML = t.fuzzyRules.map(r => `
             <tr>
               <td>${r.rule}</td>
-              <td><strong>${r.triggered ? '<span class="tag-severity tag-CRITICAL">TRIGGERED</span>' : '<span class="tag-severity tag-LOW">PASS</span>'}</strong></td>
-              <td>${r.weight}</td>
+              <td><strong>${r.triggered ? '<span class="tag-severity tag-CRITICAL">[ TRIGGERED ]</span>' : '<span class="tag-severity tag-LOW">[ PASS ]</span>'}</strong></td>
+              <td><code>${r.weight}</code></td>
             </tr>
           `).join('');
         }

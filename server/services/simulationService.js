@@ -6,6 +6,7 @@ const ThreatPrediction = require('../models/ThreatPrediction');
 const ThreatSimulation = require('../models/ThreatSimulation');
 const DeceptionAsset = require('../models/DeceptionAsset');
 const DeceptionEvent = require('../models/DeceptionEvent');
+const Alert = require('../models/Alert');
 const User = require('../models/User');
 
 const { evaluateBehavior } = require('../engines/behavior');
@@ -13,54 +14,64 @@ const { calculateTrust } = require('../engines/trust');
 const { evaluateHumanRisk } = require('../engines/humanRisk');
 const { predictThreat } = require('../engines/threat');
 const { runMonteCarloSimulation } = require('../engines/threat/monteCarlo');
-const { processDeceptionTrigger } = require('../engines/deception');
 
 const securityEventService = require('./securityEventService');
 const alertService = require('./alertService');
 const realtimeService = require('./realtimeService');
 
 class SimulationService {
+  /**
+   * Execute 10-Step NeuroShield Pipeline & Monte Carlo Simulation on the CURRENT SYSTEM STATE.
+   * Uses real database records, actual operator biometric profile, live trust/risk metrics,
+   * and current Markov threat propagation state.
+   */
   async runCompleteSimulation(options = {}) {
     const simulationId = `SIM-${Date.now()}`;
     const iterations = options.iterations || 1000;
-    const isDemo = options.isDemo !== undefined ? options.isDemo : true;
+    const isDemo = options.isDemo !== undefined ? options.isDemo : false;
 
-    // Find or target user
+    // 1. Identify active user
     let targetUser = null;
     if (options.userId) {
       targetUser = await User.findById(options.userId);
     }
     if (!targetUser) {
-      targetUser = await User.findOne({ role: 'EMPLOYEE' }) || await User.findOne({});
+      targetUser = await User.findOne({ email: 'admin@neuroshield.local' }) || await User.findOne({});
     }
 
     const userId = targetUser ? targetUser._id : null;
     const results = {};
 
     // -------------------------------------------------------------
-    // Step 1: Behavioral telemetry collection
-    // -------------------------------------------------------------
-    const rawTelemetry = options.telemetry || {
-      typingSpeed: 38,       // Anomalous typing speed (baseline 60)
-      typingInterval: 240,   // Anomalous delay
-      mouseVelocity: 890,    // Erratic fast mouse
-      mouseAccel: 195,
-      clickDelay: 60,
-      scrollVelocity: 750,
-      sessionHour: 3         // Off-hours 3 AM login
-    };
-    results.step1_telemetry = rawTelemetry;
-
-    // -------------------------------------------------------------
-    // Step 2: Feature extraction & normalization
-    // Step 3: Behavioral ML analysis (K-Means, SVM, Random Forest)
+    // Step 1: Current Behavioral Telemetry Collection
     // -------------------------------------------------------------
     let profile = null;
     if (userId) {
       profile = await BehaviorProfile.findOne({ userId });
     }
 
-    const behaviorEval = evaluateBehavior(rawTelemetry, profile);
+    const latestBehaviorEvent = userId
+      ? await BehaviorEvent.findOne({ userId }).sort({ timestamp: -1 })
+      : null;
+
+    // Use live telemetry passed from client or latest recorded telemetry or locked profile baseline
+    const currentTelemetry = options.telemetry || (latestBehaviorEvent ? latestBehaviorEvent.features : null) || {
+      typingSpeed: (profile && profile.baselineFeatures) ? profile.baselineFeatures.typingSpeed : 60,
+      typingInterval: (profile && profile.baselineFeatures) ? profile.baselineFeatures.typingInterval : 130,
+      mouseVelocity: (profile && profile.baselineFeatures) ? profile.baselineFeatures.mouseVelocity : 420,
+      mouseAccel: (profile && profile.baselineFeatures) ? profile.baselineFeatures.mouseAccel : 65,
+      clickDelay: (profile && profile.baselineFeatures) ? profile.baselineFeatures.clickDelay : 175,
+      scrollVelocity: (profile && profile.baselineFeatures) ? profile.baselineFeatures.scrollVelocity : 280,
+      sessionHour: new Date().getHours()
+    };
+
+    results.step1_telemetry = currentTelemetry;
+
+    // -------------------------------------------------------------
+    // Step 2: Feature Extraction & Normalization
+    // Step 3: Behavioral ML Analysis (K-Means, SVM, Random Forest)
+    // -------------------------------------------------------------
+    const behaviorEval = evaluateBehavior(currentTelemetry, profile);
     results.step2_features = behaviorEval.normalizedFeatures;
     results.step3_behaviorML = {
       kmeansDistance: behaviorEval.kmeansDistance,
@@ -72,60 +83,70 @@ class SimulationService {
       confidence: behaviorEval.confidence
     };
 
-    if (userId) {
-      const bEvent = new BehaviorEvent({
-        userId,
-        sessionId: `SESS-${Date.now()}`,
-        features: rawTelemetry,
-        deviceMetadata: { userAgent: 'NeuroShield Simulation Engine', platform: 'Win32' },
-        anomalyScore: behaviorEval.anomalyScore,
-        classification: behaviorEval.classification,
-        confidence: behaviorEval.confidence,
-        modelScores: {
-          kmeansDistance: behaviorEval.kmeansDistance,
-          svmDistance: behaviorEval.svmDistance,
-          rfAnomalyScore: behaviorEval.rfAnomalyScore
-        },
-        isDemo
-      });
-      await bEvent.save();
-    }
+    // -------------------------------------------------------------
+    // Step 4: Current Adaptive Trust Calculation
+    // -------------------------------------------------------------
+    const latestTrustDoc = userId
+      ? await TrustScore.findOne({ userId }).sort({ timestamp: -1 })
+      : null;
 
-    // -------------------------------------------------------------
-    // Step 4: Adaptive Trust Calculation & Fuzzy Rules
-    // -------------------------------------------------------------
-    const trustEval = calculateTrust({
+    const currentHour = new Date().getHours();
+    const isBusinessHour = (currentHour >= 7 && currentHour <= 21);
+
+    const trustInputs = {
       behaviorScore: behaviorEval.behaviorScore,
-      deviceScore: 65,   // Unrecognized device
-      locationScore: 50, // Unusual IP location
-      networkScore: 55,  // Untrusted VPN
-      timeScore: 30      // 3 AM off-hours
-    });
+      deviceScore: latestTrustDoc ? latestTrustDoc.deviceScore : 95,
+      locationScore: latestTrustDoc ? latestTrustDoc.locationScore : 92,
+      networkScore: latestTrustDoc ? latestTrustDoc.networkScore : 95,
+      timeScore: isBusinessHour ? 95 : (latestTrustDoc ? latestTrustDoc.timeScore : 75)
+    };
+
+    const trustEval = calculateTrust(trustInputs);
     results.step4_adaptiveTrust = trustEval;
 
     // -------------------------------------------------------------
-    // Step 5: Human Risk Prediction (Decision Tree, LR, Bayes)
+    // Step 5: Current Human Risk Prediction
     // -------------------------------------------------------------
-    const humanRiskEval = evaluateHumanRisk({
+    const activeAlertCount = await Alert.countDocuments({
+      status: { $in: ['OPEN', 'INVESTIGATING'] },
+      severity: { $in: ['HIGH', 'CRITICAL'] },
+      isDemo: false
+    });
+
+    const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
+    const deceptionCount = await DeceptionEvent.countDocuments({
+      userId,
+      isDemo: false,
+      timestamp: { $gte: twoHoursAgo }
+    });
+
+    const humanRiskInputs = {
       behaviorAnomalyScore: behaviorEval.anomalyScore,
       trustScore: trustEval.overallTrust,
-      recentAlertCount: 2,
-      deceptionTriggers: 1,
-      failedAuthAttempts: 2,
-      offHours: true
-    });
+      recentAlertCount: activeAlertCount,
+      deceptionTriggers: deceptionCount,
+      failedAuthAttempts: 0,
+      offHours: !isBusinessHour
+    };
+
+    const humanRiskEval = evaluateHumanRisk(humanRiskInputs);
     results.step5_humanRisk = humanRiskEval;
 
     // -------------------------------------------------------------
-    // Step 6: Markov Threat-State calculation
+    // Step 6: Current Markov Threat-State Calculation
     // -------------------------------------------------------------
+    const currentState = deceptionCount > 0
+      ? 'COMPROMISED'
+      : (humanRiskEval.riskScore > 65 ? 'INITIAL_COMPROMISE' : (trustEval.overallTrust < 60 ? 'SUSPICIOUS' : 'NORMAL'));
+
     const threatEval = predictThreat({
-      currentState: 'SUSPICIOUS',
+      currentState,
       behaviorAnomalyScore: behaviorEval.anomalyScore,
       trustScore: trustEval.overallTrust,
       humanRiskScore: humanRiskEval.riskScore,
-      deceptionHit: true
+      deceptionHit: deceptionCount > 0
     });
+
     results.step6_markovThreat = {
       currentState: threatEval.currentState,
       threatProbability: threatEval.threatProbability,
@@ -133,7 +154,7 @@ class SimulationService {
     };
 
     // -------------------------------------------------------------
-    // Step 7: Monte Carlo Threat Simulation
+    // Step 7: Monte Carlo Threat Simulation on Current State
     // -------------------------------------------------------------
     const monteCarloEval = runMonteCarloSimulation({
       initialState: threatEval.currentState,
@@ -142,6 +163,19 @@ class SimulationService {
     });
     results.step7_monteCarlo = monteCarloEval;
 
+    // -------------------------------------------------------------
+    // Step 8: Intelligent Deception Status
+    // -------------------------------------------------------------
+    const activeTrapCount = await DeceptionAsset.countDocuments({ status: 'ACTIVE' });
+    results.step8_deception = {
+      activeTraps: activeTrapCount,
+      recentTriggers: deceptionCount,
+      status: deceptionCount > 0 ? 'TRIPWIRE_TRIGGERED' : 'INTACT_MONITORING'
+    };
+
+    // -------------------------------------------------------------
+    // Step 9 & 10: Feedback Loop + MongoDB Persistence + Broadcast
+    // -------------------------------------------------------------
     if (userId) {
       const simDoc = new ThreatSimulation({
         simulationId,
@@ -163,65 +197,30 @@ class SimulationService {
       await simDoc.save();
     }
 
-    // -------------------------------------------------------------
-    // Step 8: Intelligent Deception Evaluation
-    // -------------------------------------------------------------
-    let decoyAsset = await DeceptionAsset.findOne({ type: 'HONEYTOKEN' });
-    if (!decoyAsset) {
-      decoyAsset = {
-        assetId: 'DEC-SIM-001',
-        name: 'Simulated Admin Credentials Honeytoken',
-        type: 'HONEYTOKEN',
-        location: '/etc/shadow_backup.key'
-      };
-    }
-
-    const deceptionEval = processDeceptionTrigger(decoyAsset, {
-      userId,
-      ipAddress: '198.51.100.42',
-      userAgent: 'Unauthorized Script / Simulation',
-      payloadAttempted: 'Accessed decoy shadow key file'
-    });
-    results.step8_deception = deceptionEval;
-
-    if (userId && decoyAsset._id) {
-      const dEvent = new DeceptionEvent({
-        assetId: decoyAsset.assetId,
-        userId,
-        eventType: deceptionEval.eventType,
-        severity: deceptionEval.severity,
-        metadata: deceptionEval.metadata,
-        isDemo
-      });
-      await dEvent.save();
-    }
-
-    // -------------------------------------------------------------
-    // Step 9: Security Event + Alert Generation
-    // Step 10: Feedback Loop + MongoDB Persistence + Realtime Broadcast
-    // -------------------------------------------------------------
+    const eventSeverity = (currentState === 'NORMAL') ? 'LOW' : ((currentState === 'SUSPICIOUS') ? 'MEDIUM' : 'HIGH');
     const feedbackResult = await securityEventService.processEvent({
-      eventType: 'SIMULATION_ANOMALOUS_BEHAVIOR_AND_DECEPTION',
-      severity: 'CRITICAL',
-      sourceLayer: 'INTELLIGENT_DECEPTION',
+      eventType: 'SIMULATION_CURRENT_STATE_EVALUATED',
+      severity: eventSeverity,
+      sourceLayer: 'THREAT_PREDICTION',
       userId,
-      description: `Complete NeuroShield 10-Step Simulation executed. Anomaly Score: ${behaviorEval.anomalyScore}, Trust: ${trustEval.overallTrust}, Human Risk: ${humanRiskEval.riskScore}, Compromise Prob: ${monteCarloEval.compromiseProbability}.`,
+      description: `Monte Carlo simulation evaluated on CURRENT live system state. Markov State: ${threatEval.currentState}, Compromise Reachability: ${(monteCarloEval.compromiseProbability * 100).toFixed(1)}%, Trust: ${trustEval.overallTrust}/100, Human Risk: ${humanRiskEval.riskScore}/100.`,
       metadata: {
         simulationId,
         behaviorScore: behaviorEval.behaviorScore,
         anomalyScore: behaviorEval.anomalyScore,
         trustScore: trustEval.overallTrust,
         humanRiskScore: humanRiskEval.riskScore,
-        threatState: threatEval.currentState
+        threatState: threatEval.currentState,
+        iterations
       },
       isDemo
     });
 
     results.step9_securityEvent = feedbackResult.securityEvent;
     results.step10_feedbackLoop = {
-      persistedTrustScore: feedbackResult.trustScore ? feedbackResult.trustScore.overallTrust : trustEval.overallTrust,
-      persistedHumanRisk: feedbackResult.humanRisk ? feedbackResult.humanRisk.riskScore : humanRiskEval.riskScore,
-      generatedAlert: feedbackResult.alert
+      persistedTrustScore: trustEval.overallTrust,
+      persistedHumanRisk: humanRiskEval.riskScore,
+      currentState: threatEval.currentState
     };
 
     realtimeService.broadcast('simulation:complete', {
@@ -231,7 +230,6 @@ class SimulationService {
 
     return {
       simulationId,
-      userId,
       results
     };
   }

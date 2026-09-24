@@ -11,27 +11,48 @@ router.use(authenticate);
 // GET /api/auditing/system - System resource and host telemetry
 router.get('/system', (req, res) => {
   const metrics = systemAuditor.getMetrics();
-  return res.json({ metrics });
+  return res.json({
+    metrics: {
+      ...metrics,
+      operator: req.user ? (req.user.name || req.user.email) : 'Workstation Operator',
+      role: req.user ? req.user.role : 'EMPLOYEE',
+      userId: req.user ? req.user._id : null
+    }
+  });
 });
 
 // GET /api/auditing/fim - File Integrity Monitor canary status
 router.get('/fim', (req, res) => {
   const status = fimService.getStatus();
-  return res.json({ fim: status });
+  return res.json({
+    fim: {
+      ...status,
+      operator: req.user ? (req.user.name || req.user.email) : 'Workstation Operator',
+      role: req.user ? req.user.role : 'EMPLOYEE',
+      userId: req.user ? req.user._id : null
+    }
+  });
 });
 
 // GET /api/auditing/network - Network socket & DNS resolution audit
 router.get('/network', async (req, res) => {
   const audit = networkAuditor.getAudit();
-  return res.json({ audit });
+  return res.json({
+    audit: {
+      ...audit,
+      operator: req.user ? (req.user.name || req.user.email) : 'Workstation Operator',
+      role: req.user ? req.user.role : 'EMPLOYEE',
+      userId: req.user ? req.user._id : null
+    }
+  });
 });
 
-// POST /api/auditing/fim/touch-canary - Test canary tripwire trigger
-router.post('/fim/touch-canary', authorize('ADMIN', 'SECURITY_ANALYST'), (req, res) => {
+// POST /api/auditing/fim/touch-canary - Test canary tripwire trigger (available to all users)
+router.post('/fim/touch-canary', (req, res) => {
   const status = fimService.getStatus();
   if (status.canaryFiles.length > 0) {
     const target = status.canaryFiles[0];
-    fimService._handleFileChange('change', target.name);
+    fimService._handleFileChange('change', target.name, req.user ? req.user._id : null);
     return res.json({ message: `Canary tripwire triggered for ${target.name}`, target });
   }
   return res.status(404).json({ message: 'No canary files available to trip.' });

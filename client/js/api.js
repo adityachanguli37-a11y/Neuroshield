@@ -12,6 +12,8 @@ class ApiClient {
 
     if (window.neuroshield && typeof window.neuroshield.getApiBaseUrl === 'function') {
       this.baseUrl = await window.neuroshield.getApiBaseUrl();
+    } else if (window.parent && window.parent.neuroshield && typeof window.parent.neuroshield.getApiBaseUrl === 'function') {
+      this.baseUrl = await window.parent.neuroshield.getApiBaseUrl();
     }
 
     if (!this.baseUrl) {
@@ -24,7 +26,16 @@ class ApiClient {
   }
 
   getHeaders(customHeaders = {}) {
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('neuroshield_token') : null;
+    let token = null;
+    try {
+      if (typeof localStorage !== 'undefined') {
+        token = localStorage.getItem('neuroshield_token');
+      }
+      if (!token && typeof window !== 'undefined' && window.parent && window.parent.localStorage) {
+        token = window.parent.localStorage.getItem('neuroshield_token');
+      }
+    } catch (e) {}
+
     return {
       'Content-Type': 'application/json',
       'X-NeuroShield-Client': 'desktop',

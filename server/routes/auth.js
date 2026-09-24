@@ -166,4 +166,105 @@ router.post('/logout', authenticate, async (req, res) => {
   return res.json({ message: 'Logged out successfully' });
 });
 
+// POST /api/auth/reset-password - Self-service password reset if forgotten
+router.post('/reset-password', authLimiter, async (req, res, next) => {
+  try {
+    const { email, newPassword } = req.body;
+
+    if (!email || !newPassword) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Corporate email and new password are required.'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Password must be at least 6 characters long.'
+      });
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase().trim() });
+    if (!user) {
+      return res.status(404).json({
+        error: 'Not Found',
+        message: 'No account associated with that corporate email address.'
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    try {
+      await AuditLog.create({
+        userId: user._id,
+        userName: user.name,
+        action: 'PASSWORD_RESET',
+        resource: 'Auth',
+        resourceId: user._id.toString()
+      });
+    } catch (e) {}
+
+    return res.json({
+      message: 'Password reset successfully. You can now log in with your new credentials.'
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/change-password - Authenticated password change
+router.post('/change-password', authenticate, async (req, res, next) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'Current password and new password are required.'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        error: 'Bad Request',
+        message: 'New password must be at least 6 characters long.'
+      });
+    }
+
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ error: 'Not Found', message: 'User not found' });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.passwordHash);
+    if (!isMatch) {
+      return res.status(401).json({
+        error: 'Unauthorized',
+        message: 'Current password does not match.'
+      });
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.passwordHash = await bcrypt.hash(newPassword, salt);
+    await user.save();
+
+    try {
+      await AuditLog.create({
+        userId: user._id,
+        userName: user.name,
+        action: 'PASSWORD_CHANGED',
+        resource: 'Auth',
+        resourceId: user._id.toString()
+      });
+    } catch (e) {}
+
+    return res.json({ message: 'Password changed successfully.' });
+  } catch (err) {
+    next(err);
+  }
+});
+
 module.exports = router;

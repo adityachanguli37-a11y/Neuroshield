@@ -5,95 +5,736 @@
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body {
+      padding: 24px;
+      background: transparent;
+      color: var(--text-primary);
+      font-family: var(--font-sans);
+    }
+
+    /* Terminal Console Styling */
+    .terminal-container {
+      background: #04070c;
+      border: 1px solid rgba(0, 229, 255, 0.22);
+      border-radius: var(--border-radius-sm);
+      display: flex;
+      flex-direction: column;
+      height: 520px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.7), inset 0 0 25px rgba(0, 229, 255, 0.03);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .terminal-header {
+      background: rgba(8, 14, 22, 0.95);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.18);
+      padding: 8px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+
+    .terminal-dots {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .terminal-dot.red { background: #ff4757; box-shadow: 0 0 6px rgba(255, 71, 87, 0.6); }
+    .terminal-dot.yellow { background: #ffa502; box-shadow: 0 0 6px rgba(255, 165, 2, 0.6); }
+    .terminal-dot.green { background: #2ed573; box-shadow: 0 0 6px rgba(46, 213, 115, 0.6); }
+
+    .terminal-title {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      margin-left: 6px;
+    }
+
+    .terminal-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .term-btn {
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      color: var(--cyber-cyan);
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 3px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .term-btn:hover {
+      background: rgba(0, 229, 255, 0.2);
+      color: #ffffff;
+      border-color: var(--cyber-cyan);
+      box-shadow: 0 0 8px rgba(0, 229, 255, 0.4);
+    }
+
+    .term-badge {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 3px;
+      font-weight: 700;
+    }
+    .term-badge.idle {
+      background: rgba(0, 229, 255, 0.1);
+      color: var(--cyber-cyan);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+    }
+    .term-badge.running {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--neon-green);
+      border: 1px solid rgba(0, 230, 118, 0.4);
+      animation: pulse 1.2s infinite;
+    }
+
+    .terminal-body {
+      flex: 1;
+      padding: 14px 16px;
+      overflow-y: auto;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      line-height: 1.6;
+      background: transparent;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    /* Terminal Log Row Styles */
+    .log-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 2px 4px;
+      border-radius: 3px;
+      transition: background 0.15s ease;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .log-row:hover {
+      background: rgba(0, 229, 255, 0.04);
+    }
+
+    .log-time {
+      color: rgba(0, 229, 255, 0.45);
+      font-size: 10px;
+      user-select: none;
+      flex-shrink: 0;
+      padding-top: 1px;
+    }
+
+    .log-tag {
+      font-size: 9.5px;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      padding: 1px 6px;
+      border-radius: 2px;
+      flex-shrink: 0;
+      text-transform: uppercase;
+    }
+    .tag-init { background: rgba(0, 229, 255, 0.15); color: var(--cyber-cyan); border: 1px solid rgba(0, 229, 255, 0.3); }
+    .tag-stage { background: rgba(189, 0, 255, 0.15); color: #df6bff; border: 1px solid rgba(189, 0, 255, 0.35); }
+    .tag-ml { background: rgba(0, 255, 204, 0.15); color: #00ffcc; border: 1px solid rgba(0, 255, 204, 0.35); }
+    .tag-trust { background: rgba(0, 168, 255, 0.15); color: #00a8ff; border: 1px solid rgba(0, 168, 255, 0.35); }
+    .tag-risk { background: rgba(255, 145, 0, 0.15); color: #ff9100; border: 1px solid rgba(255, 145, 0, 0.35); }
+    .tag-sim { background: rgba(255, 214, 0, 0.15); color: #ffd600; border: 1px solid rgba(255, 214, 0, 0.35); }
+    .tag-alert { background: rgba(255, 23, 68, 0.15); color: #ff5252; border: 1px solid rgba(255, 23, 68, 0.35); }
+    .tag-complete { background: rgba(0, 230, 118, 0.2); color: #00e676; border: 1px solid rgba(0, 230, 118, 0.45); }
+
+    .log-msg {
+      color: #c9d6df;
+      flex: 1;
+    }
+
+    /* Telemetry Summary Card inside console */
+    .telemetry-card {
+      margin-top: 10px;
+      margin-bottom: 6px;
+      background: rgba(6, 12, 20, 0.95);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 14px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+    }
+
+    .telemetry-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.15);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+    }
+
+    .telemetry-title {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--neon-green);
+      letter-spacing: 1px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .telemetry-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .telemetry-cell {
+      background: rgba(10, 16, 26, 0.7);
+      border: 1px solid rgba(0, 229, 255, 0.1);
+      border-radius: 4px;
+      padding: 7px 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .telemetry-cell .cell-label {
+      color: var(--text-secondary);
+      font-size: 10px;
+    }
+
+    .telemetry-cell .cell-val {
+      font-weight: 700;
+      font-size: 11px;
+    }
+
+    /* Live Operational Posture Grid */
+    .posture-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+
+    .posture-item {
+      background: rgba(9, 14, 22, 0.75);
+      border: 1px solid rgba(0, 229, 255, 0.14);
+      border-radius: var(--border-radius-sm);
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .posture-label {
+      font-family: var(--font-mono);
+      font-size: 9.5px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .posture-val {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* Preset iteration chips */
+    .preset-chip {
+      background: rgba(14, 22, 34, 0.8);
+      border: 1px solid rgba(0, 229, 255, 0.18);
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      font-size: 10.5px;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .preset-chip:hover, .preset-chip.active {
+      background: rgba(0, 229, 255, 0.15);
+      border-color: var(--cyber-cyan);
+      color: #ffffff;
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
+    }
+  </style>
 </head>
-<body style="padding: 24px; background: var(--bg-primary);">
-  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Monte Carlo Threat Simulation Suite</h1>
-  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Stochastic threat path simulation (100 to 100,000 iterations) & 10-Step NeuroShield Security Engine Execution.</p>
+<body>
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h1 style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+        <span class="system-pulse"></span>
+        MONTE CARLO THREAT SIMULATION SUITE
+      </h1>
+      <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+        > Stochastic threat path modeling on CURRENT LIVE SYSTEM STATE & 10-Step NeuroShield Multi-Layer Security Pipeline.
+      </p>
+    </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
-    <!-- Complete 10-Step Simulator Controls -->
-    <div class="glass-panel" style="padding: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Simulation Configuration</h3>
-      <div class="form-group">
-        <label>Monte Carlo Iterations Count (100 - 100,000)</label>
-        <input type="number" id="inp-sim-iterations" class="form-control" value="1000" min="100" max="100000">
-      </div>
-      <button id="btn-start-full-sim" class="btn btn-primary" style="width: 100%; margin-top: 12px;">⚡ EXECUTE COMPLETE 10-STEP NEUROSHIELD PIPELINE</button>
+    <div style="display: flex; gap: 10px; align-items: center; font-family: var(--font-mono); font-size: 11px;">
+      <span style="color: var(--text-secondary);">POSTURE:</span>
+      <span id="txt-posture-badge" style="color: var(--neon-green); font-weight: 700;">● LIVE TELEMETRY SYNCED</span>
+    </div>
+  </div>
 
-      <!-- 10-step progress bar -->
-      <div id="sim-progress-box" style="margin-top: 24px; display: none;">
-        <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 6px;">
-          <span id="txt-sim-step">Step 1/10: Behavioral Telemetry</span>
-          <span id="txt-sim-pct">10%</span>
+  <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 20px;">
+    <!-- Simulator Controls & Live Context HUD -->
+    <div class="glass-panel" style="padding: 20px; display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+          <span>// CURRENT LIVE SYSTEM POSTURE //</span>
+          <span class="indicator"><span class="system-pulse"></span> REALTIME DB SYNC</span>
         </div>
-        <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-sim-fill" style="width: 10%;"></div></div>
+
+        <!-- Live Posture Grid (Reflects true current state) -->
+        <div class="posture-grid">
+          <div class="posture-item">
+            <span class="posture-label">Target Operator</span>
+            <span class="posture-val" id="posture-operator" style="color: #ffffff;">Marcus Vance [ADMIN]</span>
+          </div>
+          <div class="posture-item">
+            <span class="posture-label">Current Markov Threat</span>
+            <span class="posture-val" id="posture-state" style="color: var(--neon-green);">NORMAL (SAFE)</span>
+          </div>
+          <div class="posture-item">
+            <span class="posture-label">Current Adaptive Trust</span>
+            <span class="posture-val" id="posture-trust" style="color: var(--neon-green);">95.0 / 100 [HIGH]</span>
+          </div>
+          <div class="posture-item">
+            <span class="posture-label">Current Human Risk</span>
+            <span class="posture-val" id="posture-risk" style="color: var(--neon-green);">1.0 / 100 [LOW]</span>
+          </div>
+          <div class="posture-item">
+            <span class="posture-label">Active Incidents / Traps</span>
+            <span class="posture-val" id="posture-incidents" style="color: var(--cyber-cyan);">0 Open Alerts</span>
+          </div>
+          <div class="posture-item">
+            <span class="posture-label">Biometric Baseline</span>
+            <span class="posture-val" id="posture-profile" style="color: var(--neon-green);">Calibrated & Synced</span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 10px;">
+          <label style="display: flex; justify-content: space-between; font-size: 10.5px; margin-bottom: 6px;">
+            <span>[ MONTE CARLO SAMPLE ITERATIONS ]</span>
+            <span style="color: var(--cyber-cyan);">Range: 100 - 100,000</span>
+          </label>
+          <input type="number" id="inp-sim-iterations" class="form-control" value="1000" min="100" max="100000" style="font-family: var(--font-mono); font-weight: 700; color: var(--neon-green);">
+        </div>
+
+        <!-- Iteration Preset Quick Selectors -->
+        <div style="display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap;">
+          <button class="preset-chip" onclick="setIterations(100)">100 (Quick)</button>
+          <button class="preset-chip active" onclick="setIterations(1000)">1,000 (Standard)</button>
+          <button class="preset-chip" onclick="setIterations(5000)">5,000 (Deep)</button>
+          <button class="preset-chip" onclick="setIterations(10000)">10,000 (High-Precision)</button>
+          <button class="preset-chip" onclick="setIterations(50000)">50,000 (Max-Stress)</button>
+        </div>
+
+        <!-- Scenario Description Note -->
+        <div style="background: rgba(9, 14, 22, 0.7); border: 1px solid rgba(0, 229, 255, 0.12); border-radius: var(--border-radius-sm); padding: 12px; margin-bottom: 18px; font-family: var(--font-mono); font-size: 11px;">
+          <div style="color: var(--cyber-cyan); font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+            <span>🛡️</span> LIVE OPERATIONAL SIMULATION PIPELINE
+          </div>
+          <div style="color: var(--text-secondary); line-height: 1.5; font-size: 10.5px;">
+            Executes the 10-step stochastic pipeline directly against the <strong>actual current system state</strong> in MongoDB Atlas. Captures live biometric telemetry, evaluates authentic trust/risk posture, and calculates Monte Carlo path reachability starting from the operator's current Markov threat state.
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button id="btn-start-full-sim" class="btn btn-primary" style="width: 100%; padding: 13px; font-size: 12px;">
+          ⚡ RUN MONTE CARLO ON CURRENT LIVE STATE
+        </button>
+
+        <!-- 10-step progress bar -->
+        <div id="sim-progress-box" style="margin-top: 16px; display: none; font-family: var(--font-mono);">
+          <div style="display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 6px;">
+            <span id="txt-sim-step" style="color: var(--cyber-cyan); font-weight: 600;">Stage 1/10: Live Behavioral Telemetry</span>
+            <span id="txt-sim-pct" style="color: var(--neon-green); font-weight: 700;">10%</span>
+          </div>
+          <div class="progress-bar-container" style="height: 6px; background: rgba(0, 229, 255, 0.1); border-radius: 3px; overflow: hidden;">
+            <div class="progress-bar-fill" id="bar-sim-fill" style="width: 10%; height: 100%; background: linear-gradient(90deg, var(--neon-green), var(--cyber-cyan)); transition: width 0.2s ease;"></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <!-- Simulation Results Log -->
-    <div class="glass-panel" style="padding: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Execution Output & Monte Carlo Metrics</h3>
-      <div id="sim-results-output" style="font-family: monospace; font-size: 12px; line-height: 1.6; color: var(--accent-cyan); background: #0c1019; padding: 16px; border-radius: 6px; border: 1px solid var(--border-color); height: 320px; overflow-y: auto;">
-        System ready. Click "Execute Complete 10-Step NeuroShield Pipeline" to run stochastic simulations and persist results to MongoDB.
+    <!-- Execution Console & Monte Carlo Telemetry -->
+    <div class="glass-panel" style="padding: 20px;">
+      <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+        <span>// EXECUTION CONSOLE & MONTE CARLO TELEMETRY //</span>
+        <span class="indicator"><span class="system-pulse"></span> LOG READY</span>
+      </div>
+
+      <!-- High-tech Terminal Container -->
+      <div class="terminal-container">
+        <!-- Terminal Header -->
+        <div class="terminal-header">
+          <div class="terminal-dots">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">TERMINAL // LIVE_STATE_PIPELINE.LOG</span>
+          </div>
+          <div class="terminal-actions">
+            <span id="badge-stream-status" class="term-badge idle">● IDLE</span>
+            <button id="btn-clear-console" class="term-btn" title="Clear Terminal Logs">CLEAR</button>
+            <button id="btn-copy-console" class="term-btn" title="Copy Log Content">COPY</button>
+          </div>
+        </div>
+
+        <!-- Terminal Output Viewport -->
+        <div id="sim-results-output" class="terminal-body">
+          <div class="log-row">
+            <span class="log-time">[BOOT]</span>
+            <span class="log-tag tag-init">SYSTEM</span>
+            <span class="log-msg" style="color: var(--cyber-cyan);">NeuroShield Stochastic Engine v2.4 initialized. Ready to simulate current system state.</span>
+          </div>
+          <div class="log-row">
+            <span class="log-time">[WAIT]</span>
+            <span class="log-tag tag-init">STANDBY</span>
+            <span class="log-msg" style="color: var(--text-secondary);">Select iterations (e.g. 1,000) and click "RUN MONTE CARLO ON CURRENT LIVE STATE".</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
 <script src="../js/api.js"></script>
 <script>
+  function setIterations(val) {
+    document.getElementById('inp-sim-iterations').value = val;
+    document.querySelectorAll('.preset-chip').forEach(btn => {
+      btn.classList.toggle('active', btn.textContent.startsWith(val.toLocaleString()));
+    });
+  }
+
+  function getTimestamp() {
+    const d = new Date();
+    return d.toTimeString().split(' ')[0];
+  }
+
+  function appendLogRow(time, tagType, tagText, message, style = '') {
+    const output = document.getElementById('sim-results-output');
+    const row = document.createElement('div');
+    row.className = 'log-row';
+
+    const tSpan = document.createElement('span');
+    tSpan.className = 'log-time';
+    tSpan.textContent = `[${time}]`;
+
+    const tagSpan = document.createElement('span');
+    tagSpan.className = `log-tag ${tagType}`;
+    tagSpan.textContent = tagText;
+
+    const msgSpan = document.createElement('span');
+    msgSpan.className = 'log-msg';
+    if (style) msgSpan.style.cssText = style;
+    msgSpan.innerHTML = message;
+
+    row.appendChild(tSpan);
+    row.appendChild(tagSpan);
+    row.appendChild(msgSpan);
+
+    output.appendChild(row);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  function appendTelemetryMatrix(res) {
+    const output = document.getElementById('sim-results-output');
+    const r = res.results || {};
+    const bScore = r.step3_behaviorML ? r.step3_behaviorML.behaviorScore : 0;
+    const bAnomaly = r.step3_behaviorML ? r.step3_behaviorML.anomalyScore : 0;
+    const bClass = r.step3_behaviorML ? r.step3_behaviorML.classification : 'GENUINE';
+
+    const tTrust = r.step4_adaptiveTrust ? r.step4_adaptiveTrust.overallTrust : 95;
+    const tLevel = r.step4_adaptiveTrust ? r.step4_adaptiveTrust.trustLevel : 'HIGH TRUST';
+
+    const hRisk = r.step5_humanRisk ? r.step5_humanRisk.riskScore : 1;
+    const hCat = r.step5_humanRisk ? r.step5_humanRisk.category : 'LOW';
+
+    const mComp = r.step7_monteCarlo ? (r.step7_monteCarlo.compromiseProbability * 100).toFixed(1) : '0.0';
+    const mTime = r.step7_monteCarlo ? r.step7_monteCarlo.expectedTimeToCompromise : 300;
+    const mNode = r.step7_monteCarlo ? r.step7_monteCarlo.criticalNode : 'NORMAL';
+
+    const nodeColor = (mNode === 'NORMAL') ? 'var(--neon-green)' : ((mNode === 'SUSPICIOUS') ? 'var(--warning-orange)' : 'var(--danger-red)');
+
+    const card = document.createElement('div');
+    card.className = 'telemetry-card';
+    card.innerHTML = `
+      <div class="telemetry-header">
+        <span class="telemetry-title">
+          <span>⚡</span> CURRENT SCENARIO TELEMETRY MATRIX // ID: ${res.simulationId || 'SIM-EXEC'}
+        </span>
+        <span style="font-size: 10px; color: var(--neon-green); font-family: var(--font-mono); font-weight: 700;">
+          [ 10/10 STAGES COMPLETED & SYNCED ]
+        </span>
+      </div>
+      <div class="telemetry-grid">
+        <div class="telemetry-cell">
+          <span class="cell-label">[01] Live Behavioral ML:</span>
+          <span class="cell-val" style="color: ${bScore < 50 ? 'var(--danger-red)' : 'var(--neon-green)'};">
+            ${bScore}/100 <span style="font-size: 9.5px;">(${bClass})</span>
+          </span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">[02] Anomaly Score:</span>
+          <span class="cell-val" style="color: ${bAnomaly > 0.3 ? 'var(--warning-orange)' : 'var(--neon-green)'};">${bAnomaly} &chi;<sub>7</sub></span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">[03] Current Adaptive Trust:</span>
+          <span class="cell-val" style="color: ${tTrust < 50 ? 'var(--danger-red)' : 'var(--neon-green)'};">
+            ${tTrust}/100 <span style="font-size: 9.5px;">[${tLevel}]</span>
+          </span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">[04] Current Human Risk:</span>
+          <span class="cell-val" style="color: ${hRisk > 60 ? 'var(--danger-red)' : 'var(--neon-green)'};">
+            ${hRisk}/100 <span style="font-size: 9.5px;">[${hCat}]</span>
+          </span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">[05] Compromise Reachability:</span>
+          <span class="cell-val" style="color: ${parseFloat(mComp) > 50 ? 'var(--danger-red)' : 'var(--neon-green)'};">${mComp}%</span>
+        </div>
+        <div class="telemetry-cell">
+          <span class="cell-label">[06] Exp. Time To Compromise:</span>
+          <span class="cell-val" style="color: var(--cyber-cyan);">${mTime} mins</span>
+        </div>
+        <div class="telemetry-cell" style="grid-column: span 2;">
+          <span class="cell-label">[07] Critical Bottleneck Node:</span>
+          <span class="cell-val" style="color: ${nodeColor}; font-weight: 800;">
+            ${mNode} <span style="font-size: 10px; color: var(--text-secondary); font-weight: normal;">(Attack paths evaluate from this operational posture)</span>
+          </span>
+        </div>
+      </div>
+    `;
+
+    output.appendChild(card);
+    output.scrollTop = output.scrollHeight;
+  }
+
+  // Load current operational context from backend
+  async function loadLiveContext() {
+    try {
+      const res = await window.apiClient.get('/api/simulations/live-context');
+      if (res) {
+        document.getElementById('posture-operator').textContent = `${res.operator} [${res.role || 'USER'}]`;
+
+        const stateEl = document.getElementById('posture-state');
+        stateEl.textContent = res.currentState;
+        stateEl.style.color = (res.currentState === 'NORMAL') ? 'var(--neon-green)' : ((res.currentState === 'SUSPICIOUS') ? 'var(--warning-orange)' : 'var(--danger-red)');
+
+        const trustEl = document.getElementById('posture-trust');
+        trustEl.textContent = `${res.trustScore}/100 [${res.trustLevel}]`;
+        trustEl.style.color = (res.trustScore > 60) ? 'var(--neon-green)' : 'var(--danger-red)';
+
+        const riskEl = document.getElementById('posture-risk');
+        riskEl.textContent = `${res.riskScore}/100 [${res.riskCategory}]`;
+        riskEl.style.color = (res.riskScore < 50) ? 'var(--neon-green)' : 'var(--danger-red)';
+
+        document.getElementById('posture-incidents').textContent = `${res.openAlerts} Open Alerts`;
+        document.getElementById('posture-profile').textContent = res.profileConfigured ? 'Calibrated & Synced' : 'Default Profile';
+      }
+    } catch (e) {
+      console.warn('Live context fetch:', e.message);
+    }
+  }
+
+  // Clear Terminal Button
+  document.getElementById('btn-clear-console').addEventListener('click', () => {
+    const output = document.getElementById('sim-results-output');
+    output.innerHTML = `
+      <div class="log-row">
+        <span class="log-time">[${getTimestamp()}]</span>
+        <span class="log-tag tag-init">CLEARED</span>
+        <span class="log-msg" style="color: var(--text-secondary);">Execution console cleared. Ready for next simulation.</span>
+      </div>
+    `;
+  });
+
+  // Copy Console Logs with Multi-Layer Fallback (Clipboard API + Parent + ExecCommand)
+  async function copyTerminalLogs() {
+    const output = document.getElementById('sim-results-output');
+    const btn = document.getElementById('btn-copy-console');
+    if (!output || !btn) return;
+
+    const textToCopy = output.innerText || output.textContent || '';
+    let success = false;
+
+    // 1. Standard Navigator Clipboard API
+    if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
+      try {
+        await navigator.clipboard.writeText(textToCopy);
+        success = true;
+      } catch (e) {
+        console.warn('Direct clipboard.writeText failed:', e.message);
+      }
+    }
+
+    // 2. Parent window Clipboard (if embedded in an Electron iframe)
+    if (!success && window.parent && window.parent.navigator && window.parent.navigator.clipboard) {
+      try {
+        await window.parent.navigator.clipboard.writeText(textToCopy);
+        success = true;
+      } catch (e) {
+        console.warn('Parent clipboard failed:', e.message);
+      }
+    }
+
+    // 3. Fallback: document.execCommand('copy') via temporary textarea
+    if (!success) {
+      try {
+        const textArea = document.createElement('textarea');
+        textArea.value = textToCopy;
+        textArea.style.position = 'fixed';
+        textArea.style.top = '-9999px';
+        textArea.style.left = '-9999px';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        success = document.execCommand('copy');
+        document.body.removeChild(textArea);
+      } catch (err) {
+        console.error('execCommand copy fallback failed:', err);
+      }
+    }
+
+    if (success) {
+      const origText = btn.textContent;
+      btn.textContent = 'COPIED!';
+      btn.style.color = 'var(--neon-green)';
+      btn.style.borderColor = 'var(--neon-green)';
+      setTimeout(() => {
+        btn.textContent = origText;
+        btn.style.color = 'var(--cyber-cyan)';
+        btn.style.borderColor = 'rgba(0, 229, 255, 0.25)';
+      }, 1500);
+    } else {
+      btn.textContent = 'FAILED';
+      btn.style.color = 'var(--danger-red)';
+      setTimeout(() => {
+        btn.textContent = 'COPY';
+        btn.style.color = 'var(--cyber-cyan)';
+      }, 1500);
+    }
+  }
+
+  document.getElementById('btn-copy-console').addEventListener('click', copyTerminalLogs);
+
+
+
+  // Execute Simulation on Current System State
   document.getElementById('btn-start-full-sim').addEventListener('click', async () => {
-    const iterations = Number(document.getElementById('inp-sim-iterations').value);
+    const iterations = Number(document.getElementById('inp-sim-iterations').value) || 1000;
     const btn = document.getElementById('btn-start-full-sim');
     const pBox = document.getElementById('sim-progress-box');
     const pStep = document.getElementById('txt-sim-step');
     const pPct = document.getElementById('txt-sim-pct');
     const pFill = document.getElementById('bar-sim-fill');
-    const output = document.getElementById('sim-results-output');
+    const statusBadge = document.getElementById('badge-stream-status');
 
     btn.disabled = true;
     pBox.style.display = 'block';
-    output.innerHTML = 'Starting complete 10-step NeuroShield simulation pipeline...\n';
+    statusBadge.className = 'term-badge running';
+    statusBadge.textContent = '⚡ RUNNING';
 
-    const steps = [
-      "1/10 Behavioral telemetry collection",
-      "2/10 Feature extraction and normalization",
-      "3/10 Behavioral ML analysis (K-Means, SVM, Random Forest)",
-      "4/10 Adaptive Trust calculation & Fuzzy logic rules",
-      "5/10 Human Risk Prediction (Decision Tree, LR, Bayes)",
-      "6/10 Markov threat-state transition calculation",
-      "7/10 Monte Carlo threat simulation execution",
-      "8/10 Intelligent Deception evaluation",
-      "9/10 Security Event & Alert generation",
-      "10/10 Feedback loop, MongoDB persistence & Socket.IO update"
+    appendLogRow(
+      getTimestamp(),
+      'tag-init',
+      'INIT',
+      `Starting 10-step stochastic pipeline on <strong>CURRENT LIVE STATE</strong> with <strong>${iterations.toLocaleString()}</strong> Monte Carlo iterations...`
+    );
+
+    const stageDefinitions = [
+      { num: '01/10', tag: 'tag-stage', name: 'Live behavioral telemetry collection', desc: 'Pulling active operator cadence metrics and baseline vector' },
+      { num: '02/10', tag: 'tag-stage', name: 'Z-Score feature extraction', desc: 'Normalizing 7 biometric dimensions against operator baseline' },
+      { num: '03/10', tag: 'tag-ml', name: 'Behavioral ML classification', desc: 'Executing K-Means, SVM, and Random Forest ensemble classifiers' },
+      { num: '04/10', tag: 'tag-trust', name: 'Current Adaptive Trust calculation', desc: 'Evaluating Mamdani fuzzy inference on real device, network, behavioral metrics' },
+      { num: '05/10', tag: 'tag-risk', name: 'Current Human Risk projection', desc: 'Assessing Bayesian risk probability and active incident posture' },
+      { num: '06/10', tag: 'tag-sim', name: 'Markov threat-state transition', desc: 'Constructing stochastic transition matrix starting from live Markov state' },
+      { num: '07/10', tag: 'tag-sim', name: `Monte Carlo stochastic simulation (${iterations.toLocaleString()} paths)`, desc: 'Simulating path reachability from current operational baseline' },
+      { num: '08/10', tag: 'tag-complete', name: 'Intelligent Deception audit', desc: 'Auditing honeypots and tripwire assets in MongoDB' },
+      { num: '09/10', tag: 'tag-complete', name: 'Security event & alert correlation', desc: 'Correlating multi-layer threat signals with live event stream' },
+      { num: '10/10', tag: 'tag-complete', name: 'Feedback loop & database sync', desc: 'Writing audit records to MongoDB Atlas & broadcasting Socket.IO' }
     ];
 
-    for (let i = 0; i < steps.length; i++) {
-      pStep.textContent = `Step ${steps[i]}`;
-      const pct = Math.round(((i + 1) / steps.length) * 100);
+    for (let i = 0; i < stageDefinitions.length; i++) {
+      const stage = stageDefinitions[i];
+      pStep.textContent = `Stage ${stage.num}: ${stage.name}`;
+      const pct = Math.round(((i + 1) / stageDefinitions.length) * 100);
       pPct.textContent = `${pct}%`;
       pFill.style.width = `${pct}%`;
-      output.innerHTML += `[${new Date().toLocaleTimeString()}] Executing Stage ${steps[i]}...\n`;
-      await new Promise(r => setTimeout(r, 200));
+
+      appendLogRow(
+        getTimestamp(),
+        stage.tag,
+        `STAGE ${stage.num}`,
+        `<strong>${stage.name}</strong> <span style="color: var(--text-secondary); font-size: 10px;">— ${stage.desc}</span>`
+      );
+
+      await new Promise(r => setTimeout(r, 160));
     }
 
     try {
-      const res = await window.apiClient.post('/api/simulations/run', { iterations });
-      const r = res.results;
-      output.innerHTML += `\n=========================================\n`;
-      output.innerHTML += `SIMULATION COMPLETE (ID: ${res.simulationId})\n`;
-      output.innerHTML += `Behavior Score: ${r.step3_behaviorML.behaviorScore}/100 | Anomaly: ${r.step3_behaviorML.anomalyScore}\n`;
-      output.innerHTML += `Adaptive Trust: ${r.step4_adaptiveTrust.overallTrust}/100 | Level: ${r.step4_adaptiveTrust.trustLevel}\n`;
-      output.innerHTML += `Human Risk: ${r.step5_humanRisk.riskScore}/100 | Category: ${r.step5_humanRisk.category}\n`;
-      output.innerHTML += `Compromise Probability: ${(r.step7_monteCarlo.compromiseProbability * 100).toFixed(1)}%\n`;
-      output.innerHTML += `Expected Time To Compromise: ${r.step7_monteCarlo.expectedTimeToCompromise} mins\n`;
-      output.innerHTML += `Bottleneck Critical Node: ${r.step7_monteCarlo.criticalNode}\n`;
-      output.innerHTML += `All metrics successfully persisted to MongoDB Atlas.\n`;
+      appendLogRow(getTimestamp(), 'tag-init', 'SYNC', `Transmitting payload to <code>/api/simulations/run</code> on current operational state...`);
+
+      // If active biometrics engine has collected live telemetry, send it along
+      let liveTelemetry = null;
+      if (window.parent && window.parent.biometricsEngine && typeof window.parent.biometricsEngine.getTelemetry === 'function') {
+        liveTelemetry = window.parent.biometricsEngine.getTelemetry();
+      }
+
+      const res = await window.apiClient.post('/api/simulations/run', {
+        iterations,
+        telemetry: liveTelemetry
+      });
+
+      appendLogRow(
+        getTimestamp(),
+        'tag-complete',
+        'SUCCESS',
+        `<span style="color: var(--neon-green); font-weight: 700;">Simulation completed on current state!</span> ID: <strong>${res.simulationId}</strong>:`
+      );
+
+      appendTelemetryMatrix(res);
+
+      appendLogRow(
+        getTimestamp(),
+        'tag-complete',
+        'PERSISTED',
+        `<span style="color: var(--neon-green);">All 10 multi-layer security metrics successfully saved to MongoDB Atlas. Live telemetry synced.</span>`
+      );
+
+      loadLiveContext();
     } catch (err) {
-      output.innerHTML += `\n[ERROR] Simulation failed: ${err.message}\n`;
+      appendLogRow(
+        getTimestamp(),
+        'tag-alert',
+        'ERROR',
+        `<span style="color: var(--danger-red); font-weight: 700;">Simulation failed:</span> ${err.message}`
+      );
     } finally {
       btn.disabled = false;
+      statusBadge.className = 'term-badge idle';
+      statusBadge.textContent = '● IDLE';
     }
   });
+
+  loadLiveContext();
 </script>
 </body>
 </html>

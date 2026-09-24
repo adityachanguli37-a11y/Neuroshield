@@ -11,8 +11,10 @@ router.use(authenticate);
 // GET /api/alerts
 router.get('/', async (req, res, next) => {
   try {
-    const alerts = await Alert.find().sort({ createdAt: -1 }).limit(100);
-    return res.json({ alerts });
+    const isEmployee = req.user.role === 'EMPLOYEE';
+    const filter = isEmployee ? { userId: req.user._id } : {};
+    const alerts = await Alert.find(filter).sort({ createdAt: -1 }).limit(100);
+    return res.json({ alerts, isPersonalView: isEmployee });
   } catch (err) {
     next(err);
   }

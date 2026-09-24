@@ -8,7 +8,7 @@
   <style>
     body {
       padding: 24px;
-      background: var(--bg-primary);
+      background: transparent;
       color: var(--text-primary);
     }
 
@@ -22,41 +22,48 @@
       align-items: flex-end;
       justify-content: space-between;
       gap: 16px;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
       flex-wrap: wrap;
     }
 
     .settings-title {
-      font-size: 22px;
+      font-family: var(--font-mono);
+      font-size: 20px;
       font-weight: 800;
-      color: var(--text-primary);
-      margin-bottom: 6px;
+      color: #ffffff;
+      letter-spacing: 1.5px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .settings-subtitle {
-      font-size: 13px;
+      font-family: var(--font-mono);
+      font-size: 11px;
       color: var(--text-secondary);
+      margin-top: 4px;
     }
 
     .settings-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-      gap: 24px;
+      gap: 20px;
     }
 
     .detail-list {
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
+      font-family: var(--font-mono);
     }
 
     .detail-row {
       display: flex;
       justify-content: space-between;
       gap: 16px;
-      padding: 12px 0;
-      border-bottom: 1px solid rgba(38, 51, 77, 0.4);
-      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.08);
+      align-items: center;
     }
 
     .detail-row:last-child {
@@ -65,13 +72,13 @@
 
     .detail-label {
       color: var(--text-secondary);
-      font-size: 13px;
+      font-size: 11px;
       min-width: 140px;
     }
 
     .detail-value {
       color: var(--text-primary);
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       text-align: right;
       word-break: break-word;
@@ -79,52 +86,55 @@
 
     .runtime-message {
       margin-top: 14px;
-      padding: 12px 14px;
-      border-radius: 8px;
+      padding: 10px 14px;
+      border-radius: var(--border-radius-sm);
       border: 1px solid var(--border-color);
-      background: rgba(18, 23, 34, 0.85);
-      color: var(--text-secondary);
-      min-height: 48px;
-      line-height: 1.55;
+      background: rgba(9, 14, 22, 0.85);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      min-height: 42px;
+      line-height: 1.5;
     }
 
     .runtime-message.info {
-      border-color: rgba(0, 240, 255, 0.25);
-      background: rgba(0, 240, 255, 0.06);
+      border-color: rgba(0, 229, 255, 0.25);
+      background: rgba(0, 229, 255, 0.06);
+      color: var(--text-terminal);
     }
 
     .runtime-message.success {
-      border-color: rgba(0, 230, 118, 0.35);
-      background: rgba(0, 230, 118, 0.08);
-      color: var(--accent-green);
+      border-color: rgba(0, 255, 136, 0.35);
+      background: rgba(0, 255, 136, 0.08);
+      color: var(--neon-green);
     }
 
     .runtime-message.error {
-      border-color: rgba(255, 51, 102, 0.55);
-      background: rgba(255, 51, 102, 0.08);
+      border-color: rgba(255, 59, 92, 0.45);
+      background: rgba(255, 59, 92, 0.1);
       color: #ff99b3;
     }
 
     .helper-copy {
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--text-secondary);
-      line-height: 1.6;
+      margin-top: 8px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.5;
     }
 
     .button-row {
       display: flex;
-      gap: 12px;
+      gap: 10px;
       margin-top: 16px;
       flex-wrap: wrap;
     }
 
     .button-row .btn {
-      flex: 1 1 160px;
+      flex: 1 1 140px;
     }
 
     .admin-note {
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
   </style>
 </head>
@@ -132,60 +142,75 @@
   <div class="settings-shell">
     <div class="settings-header">
       <div>
-        <div class="settings-title">NeuroShield System Settings & Health</div>
-        <div class="settings-subtitle">Inspect desktop process status, runtime storage, and the active MongoDB connection.</div>
+        <div class="settings-title">
+          <span class="system-pulse"></span>
+          SYSTEM SETTINGS & RUNTIME DIAGNOSTICS
+        </div>
+        <div class="settings-subtitle">> Inspect desktop process state, runtime storage paths, and active MongoDB clusters.</div>
       </div>
-      <div id="txt-access-role" class="tag-severity tag-MEDIUM">CHECKING ACCESS</div>
+      <div id="txt-access-role" class="tag-severity tag-MEDIUM">[ CHECKING ACCESS ]</div>
     </div>
 
     <div class="settings-grid">
-      <div class="glass-panel" style="padding: 24px;">
-        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Service Diagnostics</h3>
+      <!-- Service Diagnostics -->
+      <div class="glass-panel" style="padding: 20px;">
+        <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+          <span>// SERVICE DIAGNOSTICS & TELEMETRY //</span>
+          <span class="indicator"><span class="system-pulse"></span> KERNEL ONLINE</span>
+        </div>
+
         <div class="detail-list">
           <div class="detail-row">
-            <span class="detail-label">Application Version</span>
-            <span class="detail-value">1.0.0 Desktop</span>
+            <span class="detail-label">[01] Application Version</span>
+            <span class="detail-value" style="color: var(--cyber-cyan);">1.0.0 Desktop Core</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">API Endpoint Base URL</span>
+            <span class="detail-label">[02] REST API Base URL</span>
             <code id="txt-api-url" class="detail-value">Loading...</code>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Runtime Config File</span>
+            <span class="detail-label">[03] Runtime Config Target</span>
             <code id="txt-runtime-path" class="detail-value">Admin only</code>
           </div>
           <div class="detail-row">
-            <span class="detail-label">MongoDB Atlas Status</span>
-            <span id="txt-db-status" class="tag-severity tag-MEDIUM">CHECKING</span>
+            <span class="detail-label">[04] Database Cluster</span>
+            <span id="txt-db-status" class="tag-severity tag-MEDIUM">[ CHECKING ]</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Socket.IO Realtime Pipeline</span>
-            <span id="txt-realtime-status" class="tag-severity tag-MEDIUM">CHECKING</span>
+            <span class="detail-label">[05] Socket.IO Pipeline</span>
+            <span id="txt-realtime-status" class="tag-severity tag-MEDIUM">[ CHECKING ]</span>
           </div>
           <div class="detail-row">
-            <span class="detail-label">Electron Context Isolation</span>
-            <span class="tag-severity tag-LOW">ENABLED</span>
+            <span class="detail-label">[06] Electron Sandboxing</span>
+            <span class="tag-severity tag-LOW">[ ENFORCED ]</span>
           </div>
         </div>
 
-        <button id="btn-refresh" class="btn btn-secondary" style="width: 100%; margin-top: 16px;">Refresh Diagnostics</button>
+        <button id="btn-refresh" class="btn btn-secondary" style="width: 100%; margin-top: 16px; padding: 9px;">
+          🔄 RE-CHECK DIAGNOSTICS
+        </button>
       </div>
 
-      <div class="glass-panel" style="padding: 24px;">
-        <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 10px;">Runtime Configuration</h3>
-        <p style="font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin-bottom: 16px;">
-          Save a new MongoDB connection string directly from the installed app. The backend writes it to the runtime config file and reconnects immediately.
+      <!-- Runtime Configuration -->
+      <div class="glass-panel" style="padding: 20px;">
+        <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+          <span>// RUNTIME CLUSTER CONFIGURATION //</span>
+          <span class="indicator"><span class="system-pulse"></span> ZERO-TRUST CONFIG</span>
+        </div>
+
+        <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px;">
+          > Save a new MongoDB Atlas connection string directly. The backend writes it to runtime storage and reconnects immediately.
         </p>
 
         <div id="admin-note" class="runtime-message info admin-note">
-          ADMIN access is required to change runtime settings.
+          [ AUTH REQUIRED ]: ADMIN role access is required to modify runtime configuration.
         </div>
 
         <form id="runtime-form">
           <div class="form-group">
-            <label for="mongodb-uri">MongoDB URI</label>
-            <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 6px;">
-              Current value: <code id="txt-mongo-uri">Not configured</code>
+            <label for="mongodb-uri">[ MONGODB CONNECTION STRING ]</label>
+            <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-muted); margin-bottom: 6px;">
+              Current target: <code id="txt-mongo-uri" style="color: var(--text-terminal);">Not configured</code>
             </div>
             <input
               id="mongodb-uri"
@@ -198,16 +223,16 @@
           </div>
 
           <div class="helper-copy">
-            The field is intentionally blank by default. Paste a replacement URI only when you want to update the installed desktop build.
+            > Intentionally masked. Paste replacement connection URI only when pointing to an external cluster.
           </div>
 
           <div id="runtime-message" class="runtime-message info">
-            No runtime changes saved yet.
+            > Ready for configuration.
           </div>
 
           <div class="button-row">
-            <button id="btn-save" type="submit" class="btn btn-primary">Save and Reconnect</button>
-            <button id="btn-clear" type="button" class="btn btn-secondary">Clear Field</button>
+            <button id="btn-save" type="submit" class="btn btn-primary">SAVE & RECONNECT</button>
+            <button id="btn-clear" type="button" class="btn btn-secondary">CLEAR FIELD</button>
           </div>
         </form>
       </div>
@@ -224,17 +249,17 @@
     function setBadge(element, state, okText, badText) {
       if (state) {
         element.className = 'tag-severity tag-LOW';
-        element.textContent = okText;
+        element.textContent = `[ ${okText} ]`;
       } else {
         element.className = 'tag-severity tag-CRITICAL';
-        element.textContent = badText;
+        element.textContent = `[ ${badText} ]`;
       }
     }
 
     function setRuntimeMessage(message, kind = 'info') {
       const messageBox = document.getElementById('runtime-message');
       messageBox.className = `runtime-message ${kind}`;
-      messageBox.textContent = message;
+      messageBox.textContent = `> ${message}`;
     }
 
     function setAdminAccess(isAdmin) {
@@ -247,19 +272,19 @@
 
       if (runtimeState.isAdmin) {
         accessBadge.className = 'tag-severity tag-LOW';
-        accessBadge.textContent = 'ADMIN ACCESS';
+        accessBadge.textContent = '[ ADMIN ACCESS ]';
         adminNote.style.display = 'none';
         input.disabled = false;
         saveButton.disabled = false;
         clearButton.disabled = false;
       } else {
         accessBadge.className = 'tag-severity tag-MEDIUM';
-        accessBadge.textContent = 'READ ONLY';
+        accessBadge.textContent = '[ READ ONLY ]';
         adminNote.style.display = 'block';
         input.disabled = true;
         saveButton.disabled = true;
         clearButton.disabled = true;
-        setRuntimeMessage('Switch to an ADMIN account to edit runtime settings.', 'info');
+        setRuntimeMessage('Authenticate as an ADMIN account to edit runtime cluster settings.', 'info');
       }
     }
 
@@ -276,16 +301,16 @@
 
         if (health.services && health.services.realtime === 'connected') {
           realtimeStatus.className = 'tag-severity tag-LOW';
-          realtimeStatus.textContent = 'CONNECTED';
+          realtimeStatus.textContent = '[ CONNECTED ]';
         } else {
           realtimeStatus.className = 'tag-severity tag-MEDIUM';
-          realtimeStatus.textContent = 'DISCONNECTED';
+          realtimeStatus.textContent = '[ LOCAL BUS ]';
         }
       } catch (err) {
         dbStatus.className = 'tag-severity tag-CRITICAL';
-        dbStatus.textContent = 'OFFLINE';
+        dbStatus.textContent = '[ OFFLINE ]';
         realtimeStatus.className = 'tag-severity tag-CRITICAL';
-        realtimeStatus.textContent = 'OFFLINE';
+        realtimeStatus.textContent = '[ OFFLINE ]';
       }
     }
 
@@ -313,8 +338,8 @@
           : 'mongodb+srv://username:password@cluster.example.mongodb.net/neuroshield';
 
         setRuntimeMessage(res.database.connected
-          ? 'Runtime configuration loaded. MongoDB is connected.'
-          : 'Runtime configuration loaded, but MongoDB is currently offline.', res.database.connected ? 'success' : 'error');
+          ? 'Runtime configuration verified. Cluster online.'
+          : 'Runtime configuration loaded. Cluster currently offline.', res.database.connected ? 'success' : 'error');
       } catch (err) {
         runtimePath.textContent = 'Unavailable';
         maskedUri.textContent = 'Unavailable';
@@ -339,7 +364,7 @@
     document.getElementById('btn-clear').addEventListener('click', () => {
       document.getElementById('mongodb-uri').value = '';
       if (runtimeState.isAdmin) {
-        setRuntimeMessage('Field cleared. The saved runtime value is unchanged until you submit a new URI.', 'info');
+        setRuntimeMessage('Field cleared. The active runtime configuration remains unchanged until submission.', 'info');
       }
     });
 
@@ -361,7 +386,7 @@
       }
 
       saveButton.disabled = true;
-      setRuntimeMessage('Saving runtime configuration and reconnecting MongoDB...', 'info');
+      setRuntimeMessage('Saving runtime configuration and establishing cluster connection...', 'info');
 
       try {
         const res = await window.apiClient.put('/api/settings/runtime', { mongodbUri });

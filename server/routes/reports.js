@@ -15,12 +15,21 @@ router.use(authenticate);
 // GET /api/reports/summary
 router.get('/summary', async (req, res, next) => {
   try {
-    const totalEvents = await SecurityEvent.countDocuments();
-    const activeAlerts = await Alert.countDocuments({ status: { $in: ['NEW', 'ACKNOWLEDGED'] } });
-    const latestTrust = await TrustScore.findOne().sort({ timestamp: -1 });
-    const latestRisk = await HumanRisk.findOne().sort({ timestamp: -1 });
-    const latestSim = await ThreatSimulation.findOne().sort({ timestamp: -1 });
-    const totalDeceptions = await DeceptionEvent.countDocuments();
+    const isEmployee = req.user.role === 'EMPLOYEE';
+    const filter = isEmployee ? { userId: req.user._id } : {};
+
+    const totalEvents = await SecurityEvent.countDocuments(filter);
+    const activeAlerts = await Alert.countDocuments({
+      ...filter,
+      status: { $in: ['NEW', 'ACKNOWLEDGED'] }
+    });
+    const latestTrust = await TrustScore.findOne(filter).sort({ timestamp: -1 })
+      || (!isEmployee ? await TrustScore.findOne().sort({ timestamp: -1 }) : null);
+    const latestRisk = await HumanRisk.findOne(filter).sort({ timestamp: -1 })
+      || (!isEmployee ? await HumanRisk.findOne().sort({ timestamp: -1 }) : null);
+    const latestSim = await ThreatSimulation.findOne(filter).sort({ timestamp: -1 })
+      || await ThreatSimulation.findOne().sort({ timestamp: -1 });
+    const totalDeceptions = await DeceptionEvent.countDocuments(filter);
 
     return res.json({
       summary: {
@@ -32,7 +41,8 @@ router.get('/summary', async (req, res, next) => {
         riskCategory: latestRisk ? latestRisk.category : 'LOW',
         latestSimulationId: latestSim ? latestSim.simulationId : 'N/A',
         compromiseProbability: latestSim ? latestSim.results.compromiseProbability : 0.05,
-        totalDeceptionEvents: totalDeceptions
+        totalDeceptionEvents: totalDeceptions,
+        isEmployeeView: isEmployee
       }
     });
   } catch (err) {

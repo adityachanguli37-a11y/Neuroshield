@@ -3,125 +3,231 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NeuroShield - SOC Desktop Dashboard</title>
+  <title>NeuroShield — SOC Terminal Dashboard</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/components.css">
+  <style>
+    /* Iframe & Scanline effect inside dashboard shell */
+    #page-frame {
+      width: 100%;
+      height: calc(100vh - 56px);
+      border: none;
+      background: transparent;
+      position: relative;
+      z-index: 1;
+      transition: opacity 0.15s ease;
+    }
+  </style>
 </head>
-<body>
+<body class="terminal-grid-bg scanlines">
 
 <div class="dashboard-container">
-  <!-- Sidebar -->
+  <!-- Premium Terminal Sidebar -->
   <aside class="sidebar">
     <div class="sidebar-header">
-      <div class="brand-icon">NS</div>
-      <div class="brand-title">NEUROSHIELD</div>
+      <div class="brand-icon-wrap">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <div class="brand-title">NEURO<span>SHIELD</span></div>
+        <div class="brand-subtitle">[ SOC OPERATIONS CORE ]</div>
+      </div>
     </div>
 
-    <nav class="sidebar-menu">
-      <div class="menu-category">Overview</div>
-      <div class="nav-item active" data-page="pages/dashboard.html">
-        <span>SOC Overview</span>
+    <nav class="sidebar-menu" id="sidebar-nav-menu">
+      <div class="menu-category">// OVERVIEW //</div>
+      <div class="nav-item active" data-page="pages/dashboard.html" data-code="01" data-label="OVERVIEW">
+        <span class="nav-code">[01]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+        </span>
+        <span class="nav-label">OVERVIEW</span>
       </div>
 
-      <div class="menu-category">Security Layers</div>
-      <div class="nav-item" data-page="pages/behavior.html">
-        <span>1. Behavioral Identity</span>
+      <div class="menu-category">// DEFENSE LAYERS //</div>
+      <div class="nav-item" data-page="pages/behavior.html" data-code="02" data-label="BEHAVIORAL IDENTITY">
+        <span class="nav-code">[02]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 6v6l4 2"/></svg>
+        </span>
+        <span class="nav-label">1. Behavioral Identity</span>
       </div>
-      <div class="nav-item" data-page="pages/trust.html">
-        <span>2. Adaptive Trust</span>
+      <div class="nav-item" data-page="pages/trust.html" data-code="03" data-label="ADAPTIVE TRUST">
+        <span class="nav-code">[03]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </span>
+        <span class="nav-label">2. Adaptive Trust</span>
       </div>
-      <div class="nav-item" data-page="pages/human-risk.html">
-        <span>3. Human Risk Prediction</span>
+      <div class="nav-item" data-page="pages/human-risk.html" data-code="04" data-label="HUMAN RISK PREDICTION">
+        <span class="nav-code">[04]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/><path d="M18 8l4 4-4 4"/></svg>
+        </span>
+        <span class="nav-label">3. Human Risk Prediction</span>
       </div>
-      <div class="nav-item" data-page="pages/threat-prediction.html">
-        <span>4. Threat Simulation</span>
+      <div class="nav-item" data-page="pages/threat-prediction.html" data-code="05" data-label="THREAT PREDICTION">
+        <span class="nav-code">[05]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </span>
+        <span class="nav-label">4. Threat Prediction</span>
       </div>
-      <div class="nav-item" data-page="pages/deception.html">
-        <span>5. Intelligent Deception</span>
-      </div>
-
-      <div class="menu-category">Analytics & Simulation</div>
-      <div class="nav-item" data-page="pages/attack-graph.html">
-        <span>Attack Graph</span>
-      </div>
-      <div class="nav-item" data-page="pages/simulations.html">
-        <span>Monte Carlo Sims</span>
-      </div>
-
-      <div class="menu-category">Operations</div>
-      <div class="nav-item" data-page="pages/alerts.html">
-        <span>Security Alerts</span>
-      </div>
-      <div class="nav-item" data-page="pages/events.html">
-        <span>Event Stream</span>
-      </div>
-      <div class="nav-item" data-page="pages/reports.html">
-        <span>Reports & Export</span>
-      </div>
-      <div class="nav-item" data-page="pages/endpoint-audit.html">
-        <span>Endpoint & FIM Audit</span>
+      <div class="nav-item" data-page="pages/deception.html" data-code="06" data-label="INTELLIGENT DECEPTION">
+        <span class="nav-code">[06]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </span>
+        <span class="nav-label">5. Intelligent Deception</span>
       </div>
 
-      <div class="menu-category">Administration</div>
-      <div class="nav-item" data-page="pages/users.html">
-        <span>User Access & RBAC</span>
+      <div class="menu-category">// SIMULATION & ANALYTICS //</div>
+      <div class="nav-item" data-page="pages/attack-graph.html" data-code="07" data-label="ATTACK GRAPH">
+        <span class="nav-code">[07]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </span>
+        <span class="nav-label">Attack Dependency Graph</span>
       </div>
-      <div class="nav-item" data-page="pages/audit.html">
-        <span>Audit Logs</span>
+      <div class="nav-item" data-page="pages/simulations.html" data-code="08" data-label="MONTE CARLO SIMS">
+        <span class="nav-code">[08]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><line x1="9" y1="1" x2="9" y2="4"/><line x1="15" y1="1" x2="15" y2="4"/><line x1="9" y1="20" x2="9" y2="23"/><line x1="15" y1="20" x2="15" y2="23"/></svg>
+        </span>
+        <span class="nav-label">Monte Carlo Sims</span>
       </div>
-      <div class="nav-item" data-page="pages/settings.html">
-        <span>System Settings</span>
+
+      <div class="menu-category">// OPERATIONS //</div>
+      <div class="nav-item" data-page="pages/alerts.html" data-code="09" data-label="SECURITY ALERTS">
+        <span class="nav-code">[09]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </span>
+        <span class="nav-label">Security Alerts</span>
+      </div>
+      <div class="nav-item" data-page="pages/events.html" data-code="10" data-label="EVENT STREAM">
+        <span class="nav-code">[10]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+        </span>
+        <span class="nav-label">Event Stream</span>
+      </div>
+      <div class="nav-item" data-page="pages/reports.html" data-code="11" data-label="REPORTS & EXPORT">
+        <span class="nav-code">[11]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </span>
+        <span class="nav-label">Reports & Export</span>
+      </div>
+      <div class="nav-item" data-page="pages/endpoint-audit.html" data-code="12" data-label="ENDPOINT & FIM">
+        <span class="nav-code">[12]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+        </span>
+        <span class="nav-label">Endpoint & FIM Audit</span>
+      </div>
+
+      <div class="menu-category">// ADMINISTRATION //</div>
+      <div class="nav-item" data-page="pages/users.html" data-code="13" data-label="IDENTITY & RBAC" data-role="ADMIN">
+        <span class="nav-code">[13]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        </span>
+        <span class="nav-label">Identity Access & RBAC</span>
+      </div>
+      <div class="nav-item" data-page="pages/audit.html" data-code="14" data-label="IMMUTABLE AUDIT" data-role="ADMIN">
+        <span class="nav-code">[14]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+        </span>
+        <span class="nav-label">Immutable Audit Logs</span>
+      </div>
+      <div class="nav-item" data-page="pages/settings.html" data-code="15" data-label="SYSTEM SETTINGS" data-role="ADMIN">
+        <span class="nav-code">[15]</span>
+        <span class="nav-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span class="nav-label">System Settings</span>
       </div>
     </nav>
   </aside>
 
-  <!-- Main Content -->
+  <!-- Main Content Shell -->
   <main class="main-content">
-    <!-- Top Header -->
+    <!-- Top Terminal Header -->
     <header class="top-header">
-      <div class="status-badges">
-        <div id="db-status-badge" class="badge badge-online">
-          <span class="badge-status-dot"></span> MongoDB: Checking...
+      <div class="header-left">
+        <!-- Breadcrumb & Active Module Identifier -->
+        <div id="header-breadcrumb" class="system-status-indicator">
+          <span class="system-pulse"></span>
+          <span>LOC: [ 01 // OVERVIEW ]</span>
         </div>
-        <div id="realtime-status-badge" class="badge badge-online">
-          <span class="badge-status-dot"></span> Realtime: Checking...
-        </div>
-        <div id="telemetry-hud-badge" class="badge" style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.35); color: #7dd3fc; font-family: monospace; font-size: 11px;" title="Real-time OS cursor velocity and application keystroke speed">
-          <span>⚡ Pointer: <strong id="top-pointer-speed">0</strong> px/s | Typing: <strong id="top-typing-wpm">0</strong> WPM</span>
+
+        <div class="status-badges">
+          <div id="db-status-badge" class="badge badge-online">
+            <span class="badge-status-dot"></span> MONGODB: CHECKING...
+          </div>
+          <div id="realtime-status-badge" class="badge badge-online">
+            <span class="badge-status-dot"></span> SOCKET: SYNCED
+          </div>
+          <!-- Live Telemetry HUD -->
+          <div class="telemetry-hud" title="Real-time OS pointer velocity and application keystroke velocity">
+            <span>⚡ PTR: <strong id="top-pointer-speed">0</strong> px/s</span>
+            <span style="opacity: 0.4;">|</span>
+            <span>WPM: <strong id="top-typing-wpm">0</strong></span>
+          </div>
         </div>
       </div>
 
-      <div class="user-profile">
-        <div class="user-avatar" id="user-avatar-initials">AD</div>
-        <div>
-          <div id="user-display-name" style="font-weight: 600; font-size: 13px;">Administrator</div>
-          <div id="user-display-role" style="font-size: 11px; color: var(--accent-cyan);">ADMIN</div>
+      <div class="header-right">
+        <!-- Emergency Lockdown Hotkey hint -->
+        <button id="btn-lock-trigger" class="btn btn-secondary" style="padding: 4px 10px; font-size: 10px; border-color: rgba(255, 59, 92, 0.4); color: #ff99b3;" title="Zero-Trust Hotkey: Ctrl+Shift+L">
+          🔒 LOCK (Ctrl+Shift+L)
+        </button>
+
+        <!-- User Profile Pill -->
+        <div class="user-profile">
+          <div class="user-avatar" id="user-avatar-initials">AD</div>
+          <div class="user-details">
+            <div class="user-name" id="user-display-name">Administrator</div>
+            <div class="user-role-badge" id="user-display-role">[ ADMIN ]</div>
+          </div>
+          <button id="btn-logout" class="btn btn-secondary" style="padding: 5px 12px; margin-left: 8px;">LOGOUT</button>
         </div>
-        <button id="btn-logout" class="btn btn-secondary" style="padding: 6px 12px; margin-left: 12px;">Logout</button>
       </div>
     </header>
 
-    <!-- Subpage Frame -->
-    <iframe id="page-frame" src="pages/dashboard.html" style="width: 100%; height: calc(100vh - 60px); border: none; background: transparent; position: relative; z-index: 1;" tabindex="0"></iframe>
+    <!-- Subpage Frame Container -->
+    <iframe id="page-frame" src="pages/dashboard.html" tabindex="0"></iframe>
   </main>
 </div>
 
-<!-- Floating Toast Container -->
-<div id="toast-container" style="position: fixed; top: 70px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none; max-width: 380px;"></div>
+<!-- Floating Toast Notification System -->
+<div id="toast-container" style="position: fixed; top: 68px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; max-width: 380px;"></div>
 
 <!-- Emergency Security Lockdown Modal -->
-<div id="lockdown-overlay" style="display: none; position: fixed; inset: 0; background: rgba(8, 11, 17, 0.96); backdrop-filter: blur(24px); z-index: 100000; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 24px;">
-  <div style="font-size: 54px; margin-bottom: 12px;">🚨</div>
-  <h2 style="color: var(--accent-red); font-size: 24px; font-weight: 800; letter-spacing: 2px;">ZERO-TRUST WORKSTATION LOCKDOWN</h2>
-  <p style="color: var(--text-secondary); max-width: 480px; margin: 12px 0 24px; font-size: 13px; line-height: 1.6;">
-    Workstation access suspended under Risk-Based Authentication (RBA) Policy. High risk anomaly detected or manual emergency lockdown triggered (Ctrl+Shift+L).
+<div id="lockdown-overlay" style="display: none; position: fixed; inset: 0; background: rgba(5, 7, 10, 0.97); backdrop-filter: blur(28px); -webkit-backdrop-filter: blur(28px); z-index: 100000; align-items: center; justify-content: center; flex-direction: column; text-align: center; padding: 24px;">
+  <div style="font-size: 50px; margin-bottom: 12px; filter: drop-shadow(0 0 20px rgba(255, 59, 92, 0.8));">🚨</div>
+  <h2 style="color: var(--danger-red); font-family: var(--font-mono); font-size: 24px; font-weight: 800; letter-spacing: 2px;">
+    ZERO-TRUST WORKSTATION LOCKDOWN
+  </h2>
+  <div style="font-family: var(--font-mono); font-size: 11px; color: var(--text-terminal); margin-top: 4px; letter-spacing: 1px;">
+    [ SEC_STATUS: ACCESS_SUSPENDED // ANOMALY_TRIPWIRE ]
+  </div>
+  <p style="color: var(--text-secondary); max-width: 500px; margin: 16px 0 24px; font-size: 13px; line-height: 1.6;">
+    Workstation access suspended under Risk-Based Authentication (RBA) Policy. Elevated behavioral anomaly or manual emergency lockdown triggered (Ctrl+Shift+L).
   </p>
-  <div style="display: flex; gap: 12px; width: 360px;">
+  <div style="display: flex; gap: 10px; width: 380px;">
     <input type="password" id="lock-pass" class="form-control" placeholder="Re-enter password to unlock..." style="flex: 1;">
     <button id="btn-unlock" class="btn btn-primary">UNLOCK</button>
   </div>
-  <div id="lock-err" style="color: #ff99b3; font-size: 12px; margin-top: 10px; display: none;">Invalid credentials.</div>
+  <div id="lock-err" style="color: var(--danger-red); font-family: var(--font-mono); font-size: 11px; margin-top: 12px; display: none;">
+    [ ERROR ]: Invalid credentials. Verification failed.
+  </div>
 </div>
 
 <script src="js/api.js"></script>
@@ -133,29 +239,32 @@
   function showToast(title, message, severity = 'INFO') {
     const container = document.getElementById('toast-container');
     const toast = document.createElement('div');
+    const borderColor = severity === 'CRITICAL' ? 'var(--danger-red)' : severity === 'HIGH' ? 'var(--warning-orange)' : 'var(--cyber-cyan)';
+    
     toast.style.cssText = `
-      background: rgba(18, 23, 34, 0.95);
-      border-left: 4px solid ${severity === 'CRITICAL' ? 'var(--accent-red)' : severity === 'HIGH' ? 'var(--accent-yellow)' : 'var(--accent-cyan)'};
-      border-top: 1px solid var(--border-color);
-      border-right: 1px solid var(--border-color);
-      border-bottom: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 14px 18px;
+      background: rgba(11, 17, 25, 0.96);
+      border-left: 3px solid ${borderColor};
+      border-top: 1px solid rgba(0, 229, 255, 0.2);
+      border-right: 1px solid rgba(0, 229, 255, 0.2);
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: var(--border-radius-sm);
+      padding: 12px 16px;
       color: #fff;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 15px rgba(0, 229, 255, 0.1);
       pointer-events: auto;
       font-size: 12px;
-      transition: all 0.3s ease;
+      font-family: var(--font-mono);
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
       opacity: 0;
-      transform: translateX(30px);
+      transform: translateX(40px);
     `;
 
     toast.innerHTML = `
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
-        <strong style="color: ${severity === 'CRITICAL' ? 'var(--accent-red)' : 'var(--accent-cyan)'}; font-size: 13px;">${title}</strong>
-        <span class="tag-severity tag-${severity}">${severity}</span>
+        <strong style="color: ${borderColor}; font-size: 12px; letter-spacing: 0.5px;">${title}</strong>
+        <span class="tag-severity tag-${severity}">[ ${severity} ]</span>
       </div>
-      <div style="color: var(--text-secondary);">${message}</div>
+      <div style="color: var(--text-secondary); font-size: 11px; line-height: 1.4;">${message}</div>
     `;
 
     container.appendChild(toast);
@@ -166,7 +275,7 @@
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateX(30px)';
+      toast.style.transform = 'translateX(40px)';
       setTimeout(() => toast.remove(), 300);
     }, 5000);
 
@@ -186,6 +295,8 @@
     showToast('🚨 WORKSTATION LOCKDOWN', 'Zero-Trust emergency lock initiated.', 'CRITICAL');
   }
 
+  document.getElementById('btn-lock-trigger').addEventListener('click', triggerLockdown);
+
   document.getElementById('btn-unlock').addEventListener('click', async () => {
     const pass = document.getElementById('lock-pass').value;
     const user = window.authManager.getCurrentUser();
@@ -198,7 +309,7 @@
     } catch (e) {
       const err = document.getElementById('lock-err');
       err.style.display = 'block';
-      err.textContent = 'Invalid credentials. Please enter your authorized password.';
+      err.textContent = '[ AUTH_FAIL ]: Invalid credentials. Access denied.';
     }
   });
 
@@ -217,7 +328,7 @@
     }
   });
 
-  // Auth Verification
+  // Auth Verification & Role RBAC Sidebar Filtering
   window.authManager.verifyAuth().then(valid => {
     if (!valid) {
       window.location.href = 'login.html';
@@ -226,18 +337,35 @@
     const user = window.authManager.getCurrentUser();
     if (user) {
       document.getElementById('user-display-name').textContent = user.name || user.email;
-      document.getElementById('user-display-role').textContent = user.role || 'EMPLOYEE';
+      document.getElementById('user-display-role').textContent = `[ ${user.role || 'EMPLOYEE'} ]`;
       document.getElementById('user-avatar-initials').textContent = (user.name || 'U').substring(0, 2).toUpperCase();
+
+      // Enforce navigation visibility: Hide ADMIN modules if user is an unprivileged EMPLOYEE
+      if (user.role !== 'ADMIN') {
+        document.querySelectorAll('[data-role="ADMIN"]').forEach(el => {
+          el.style.display = 'none';
+        });
+      }
     }
   });
 
-  // Navigation click routing
+  // Navigation Routing
+  const breadcrumbEl = document.getElementById('header-breadcrumb');
   document.querySelectorAll('.nav-item').forEach(item => {
     item.addEventListener('click', () => {
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       const page = item.getAttribute('data-page');
-      document.getElementById('page-frame').src = page;
+      const code = item.getAttribute('data-code');
+      const label = item.getAttribute('data-label');
+      breadcrumbEl.innerHTML = `<span class="system-pulse"></span><span>LOC: [ ${code} // ${label} ]</span>`;
+      
+      const frame = document.getElementById('page-frame');
+      frame.style.opacity = '0';
+      setTimeout(() => {
+        frame.src = page;
+        frame.style.opacity = '1';
+      }, 100);
     });
   });
 
@@ -245,7 +373,7 @@
     window.authManager.logout();
   });
 
-  // Check health status badges
+  // Health status updater
   async function updateHealthBadges() {
     try {
       const baseUrl = await window.apiClient.getBaseUrl();
@@ -255,15 +383,15 @@
       if (health.services && health.services.database === 'connected') {
         const isEmbedded = health.services.databaseMode === 'embedded';
         dbBadge.className = 'badge badge-online';
-        dbBadge.innerHTML = `<span class="badge-status-dot"></span> Database: ${isEmbedded ? 'Ready (Local)' : 'Connected (Atlas)'}`;
+        dbBadge.innerHTML = `<span class="badge-status-dot"></span> MONGODB: ${isEmbedded ? 'READY (LOCAL)' : 'CONNECTED (ATLAS)'}`;
       } else {
         dbBadge.className = 'badge badge-offline';
-        dbBadge.innerHTML = '<span class="badge-status-dot"></span> Database: Offline';
+        dbBadge.innerHTML = '<span class="badge-status-dot"></span> MONGODB: OFFLINE';
       }
     } catch (e) {
       const dbBadge = document.getElementById('db-status-badge');
       dbBadge.className = 'badge badge-offline';
-      dbBadge.innerHTML = '<span class="badge-status-dot"></span> Database: Offline';
+      dbBadge.innerHTML = '<span class="badge-status-dot"></span> MONGODB: OFFLINE';
     }
   }
 
@@ -287,7 +415,7 @@
     attachToSubframe();
   }
 
-  // Update OS pointer and typing speed ticker
+  // Real-time OS pointer and typing speed ticker
   setInterval(async () => {
     if (window.biometricsCollector) {
       if (window.biometricsCollector.updateOsPointerSpeed) {
@@ -308,19 +436,19 @@
   // Socket.IO Realtime Event Handlers
   window.realtimeClient.init().then(() => {
     window.realtimeClient.on('alert:new', (alert) => {
-      showToast(alert.title || 'Security Alert', alert.description || 'New security event recorded.', alert.severity || 'HIGH');
+      showToast(alert.title || 'SECURITY ALERT', alert.description || 'New security event recorded.', alert.severity || 'HIGH');
     });
 
     window.realtimeClient.on('simulation:complete', (sim) => {
-      showToast('⚡ Simulation Executed', `Complete 10-step simulation ${sim.simulationId} completed.`, 'LOW');
+      showToast('⚡ SIMULATION COMPLETE', `Complete 10-step simulation ${sim.simulationId || ''} executed.`, 'LOW');
     });
 
     window.realtimeClient.on('deception:trigger', (dec) => {
-      showToast('🚨 Honeypot Triggered', `Decoy asset ${dec.assetId} accessed! Zero-trust alert generated.`, 'CRITICAL');
+      showToast('🚨 HONEYPOT TRIGGERED', `Decoy asset ${dec.assetId || ''} tripped! Zero-trust alert generated.`, 'CRITICAL');
     });
 
     window.realtimeClient.on('fim:alert', (fim) => {
-      showToast('🚨 FIM CANARY COMPROMISE', `File Integrity Monitor tripped: Canary file '${fim.filename}' was ${fim.eventType} on host!`, 'CRITICAL');
+      showToast('🚨 FIM TRIPWIRE ALERT', `File Integrity Monitor tripped: Canary '${fim.filename}' was ${fim.eventType}!`, 'CRITICAL');
     });
   }).catch(error => console.warn('Realtime connection note:', error.message));
 </script>

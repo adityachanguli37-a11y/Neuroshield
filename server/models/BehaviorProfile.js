@@ -38,6 +38,36 @@ const behaviorProfileSchema = new mongoose.Schema({
     type: Number,
     default: 50
   },
+  isLocked: {
+    type: Boolean,
+    default: false
+  },
+  lockedAt: {
+    type: Date,
+    default: null
+  },
+  latestTelemetry: {
+    typingSpeed: { type: Number },
+    typingInterval: { type: Number },
+    mouseVelocity: { type: Number },
+    mouseAccel: { type: Number },
+    clickDelay: { type: Number },
+    scrollVelocity: { type: Number },
+    sessionHour: { type: Number }
+  },
+  latestBehaviorScore: {
+    type: Number,
+    default: 95
+  },
+  latestAnomalyScore: {
+    type: Number,
+    default: 0.05
+  },
+  latestClassification: {
+    type: String,
+    enum: ['GENUINE', 'SUSPICIOUS', 'ANOMALOUS'],
+    default: 'GENUINE'
+  },
   isDemo: {
     type: Boolean,
     default: false

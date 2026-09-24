@@ -51,15 +51,17 @@ class SecurityEventService {
       console.warn('Unable to query recent events for user:', e.message);
     }
 
-    const highSeverityCount = recentEvents.filter(e => e.severity === 'HIGH' || e.severity === 'CRITICAL').length;
-    const deceptionCount = recentEvents.filter(e => e.sourceLayer === 'INTELLIGENT_DECEPTION').length;
+    const highSeverityCount = recentEvents.filter(e => (e.severity === 'HIGH' || e.severity === 'CRITICAL') && !e.isDemo).length;
+    const deceptionCount = recentEvents.filter(e => e.sourceLayer === 'INTELLIGENT_DECEPTION' && !e.isDemo).length;
 
     // A. Recalculate Adaptive Trust
-    const behaviorScore = metadata.behaviorScore !== undefined ? metadata.behaviorScore : (sourceLayer === 'BEHAVIORAL_IDENTITY' && severity === 'HIGH' ? 40 : 75);
-    const deviceScore = metadata.deviceScore !== undefined ? metadata.deviceScore : 85;
-    const locationScore = metadata.locationScore !== undefined ? metadata.locationScore : 80;
-    const networkScore = metadata.networkScore !== undefined ? metadata.networkScore : 80;
-    const timeScore = metadata.timeScore !== undefined ? metadata.timeScore : 85;
+    const behaviorScore = metadata.behaviorScore !== undefined
+      ? metadata.behaviorScore
+      : (sourceLayer === 'BEHAVIORAL_IDENTITY' && (severity === 'HIGH' || severity === 'CRITICAL') ? 40 : 88);
+    const deviceScore = metadata.deviceScore !== undefined ? metadata.deviceScore : 88;
+    const locationScore = metadata.locationScore !== undefined ? metadata.locationScore : 85;
+    const networkScore = metadata.networkScore !== undefined ? metadata.networkScore : 85;
+    const timeScore = metadata.timeScore !== undefined ? metadata.timeScore : 90;
 
     const trustResult = calculateTrust({
       behaviorScore,

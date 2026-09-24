@@ -9,16 +9,22 @@ router.use(authenticate);
 // GET /api/trust/current/:userId
 router.get('/current/:userId', async (req, res, next) => {
   try {
-    let trustDoc = await TrustScore.findOne({ userId: req.params.userId }).sort({ timestamp: -1 });
+    const targetUserId = req.user.role === 'EMPLOYEE' ? req.user._id : req.params.userId;
+    let trustDoc = await TrustScore.findOne({ userId: targetUserId }).sort({ timestamp: -1 });
+
+    const BehaviorProfile = require('../models/BehaviorProfile');
+    const profile = await BehaviorProfile.findOne({ userId: targetUserId });
+    const behaviorScore = (profile && profile.latestBehaviorScore !== undefined) ? profile.latestBehaviorScore : 95;
+
     if (!trustDoc) {
-      const computed = calculateTrust({});
+      const computed = calculateTrust({ behaviorScore });
       trustDoc = {
-        userId: req.params.userId,
+        userId: targetUserId,
         ...computed,
         timestamp: new Date()
       };
     }
-    return res.json({ trustScore: trustDoc });
+    return res.json({ trustScore: trustDoc, lockedProfile: profile ? { isLocked: profile.isLocked, baselineFeatures: profile.baselineFeatures } : null });
   } catch (err) {
     next(err);
   }
@@ -27,7 +33,14 @@ router.get('/current/:userId', async (req, res, next) => {
 // POST /api/trust/evaluate
 router.post('/evaluate', async (req, res, next) => {
   try {
-    const contextScores = req.body;
+    const BehaviorProfile = require('../models/BehaviorProfile');
+    const profile = await BehaviorProfile.findOne({ userId: req.user._id });
+    const defaultBehaviorScore = (profile && profile.latestBehaviorScore !== undefined) ? profile.latestBehaviorScore : 95;
+
+    const contextScores = {
+      behaviorScore: defaultBehaviorScore,
+      ...req.body
+    };
     const computed = calculateTrust(contextScores);
     
     const trustDoc = new TrustScore({

@@ -202,7 +202,7 @@ def generate_report():
         ("Compliance & Architectural Frameworks:", "NIST SP 800-207 (Zero Trust), NIST SP 800-128 (FIM), CIS Controls v8"),
         ("Dual Datastore Operating Modes:", "Autonomous MongoDB Atlas / Embedded In-Memory MemoryStore Fallback"),
         ("Hardware & Host Environment:", "Windows 10 / 11 Desktop (x64 Architecture)"),
-        ("Distribution Packaging Target:", "Standalone Windows NSIS Executable (NeuroShield Setup 1.0.0.exe)"),
+        ("Distribution Packaging Target:", "Standalone Windows NSIS Executable (NeuroShield Setup 1.0.0.exe - 84.66 MB)"),
         ("Evaluation Dataset Configuration:", "8 Pre-Seeded Enterprise Personas, 7 MITRE Nodes, 3 Armed Decoys")
     ]
     for i, m_data in enumerate(meta_rows):
@@ -227,7 +227,7 @@ def generate_report():
         ("Chapter 9: Layer 5 - Dynamic Deception Technology & Deterministic Honeypots", "Page 17"),
         ("Chapter 10: Defensive Endpoint Auditing, File Integrity Monitoring (FIM) & Networks", "Page 18"),
         ("Chapter 11: Real-Time Event Mesh, Socket.IO WebSockets & Native Notifications", "Page 20"),
-        ("Chapter 12: Step-by-Step Live Demonstration Playbook For Judges", "Page 21"),
+        ("Chapter 12: Step-by-Step Live Demonstration Playbook", "Page 21"),
         ("Chapter 13: Algorithmic Verification Test Metrics & Production Build Engineering", "Page 23"),
         ("Chapter 14: Enterprise Regulatory Standards Compliance Mapping Matrix", "Page 24")
     ]
@@ -480,6 +480,33 @@ def generate_report():
         "sandbox and watch live WPM, Inter-Key Intervals, and classification models evaluate real-time physical dynamics."
     )
 
+    add_styled_heading(doc, "3.2 Identity Lifecycle Management, User Enrollment & Self-Service Password Recovery", level=2)
+    add_p(
+        doc,
+        "Enterprise access governance requires continuous lifecycle control. NeuroShield provides built-in tools for both administrator "
+        "provisioning and self-service account recovery:"
+    )
+    add_bullet(
+        doc,
+        "Interactive Identity Enrollment Modal: ",
+        "Administrators can provision new zero-trust operators directly from the Identities & Access console ('client/pages/users.html') "
+        "via the '[ + ENROLL NEW IDENTITY ]' action button or through the REST API ('POST /api/users'). The modal supports assigning name, "
+        "corporate email, temporary password, role tiers (ADMIN, SECURITY_ANALYST, AUDITOR, EMPLOYEE), and initial account status."
+    )
+    add_bullet(
+        doc,
+        "Self-Service Password Recovery Drawer: ",
+        "If an authorized user forgets their password, they can recover access directly from the login gateway ('client/login.html') "
+        "via the '[ FORGOT PASSWORD? RESET CREDENTIALS ]' drawer. Submitting their verified corporate email and new password invokes "
+        "'POST /api/auth/reset-password', cryptographically updating the bcrypt hash and recording an immutable PASSWORD_RESET audit event."
+    )
+    add_bullet(
+        doc,
+        "Administrator Credential Override: ",
+        "Security administrators can update or reset credentials for any managed identity through 'PUT /api/users/:id', with full "
+        "tamper-resistant audit trail logging."
+    )
+
     doc.add_page_break()
 
     # =============================================================
@@ -651,6 +678,33 @@ def generate_report():
         "frame.contentWindow and frame.contentDocument. Concurrently, child scripts inspect window.parent: if window.parent.biometricsCollector "
         "exists, the child reuses the parent's collector instance. Any keystroke typed in any input box or verification sandbox streams "
         "simultaneously to both the local page HUD and the global top-header badge."
+    )
+
+    add_styled_heading(doc, "5.4 Database-Locked Ground-Truth Baseline & Unified Cross-Layer Defense Propagation", level=2)
+    add_p(
+        doc,
+        "To establish a tamper-resistant identity foundation, NeuroShield implements a strict Database Baseline Locking mechanism "
+        "('server/routes/behavior.js' & 'server/models/BehaviorProfile.js'):"
+    )
+    add_bullet(
+        doc,
+        "Initial Telemetry Ingestion & Lock: ",
+        "When an operator submits telemetry for the first time, the platform captures all 7 biometric dimensions (typing speed, "
+        "typing interval, mouse velocity, acceleration, click delay, scroll velocity, and session hour) and permanently locks them in MongoDB "
+        "(isLocked: true, lockedAt: new Date()). The ground-truth baseline cannot be modified without authorized calibration."
+    )
+    add_bullet(
+        doc,
+        "Dynamic Re-Lock on Calibration: ",
+        "If typing speed or pointer movement changes through the interactive calibration suite or manual simulator, the baseline features "
+        "are updated and re-locked in the database, updating model confidence."
+    )
+    add_bullet(
+        doc,
+        "Cross-Layer Defense Propagation: ",
+        "The locked baseline's cached latestBehaviorScore and latestAnomalyScore are continuously ingested across all defensive engines: "
+        "Adaptive Trust (fuzzy logic biometrics weight 40%), Human Threat/Risk (Bayesian posterior and decision trees), and Threat Prediction "
+        "(Markov chain state transitions)."
     )
 
     doc.add_page_break()
@@ -833,6 +887,27 @@ def generate_report():
         "threat wave pulses across vulnerable edges and updating risk counters in real time."
     )
 
+    add_styled_heading(doc, "8.3 Monte Carlo Threat Simulation Suite & Universal Role Access", level=2)
+    add_p(
+        doc,
+        "To empirically test defense resilience under active adversarial scenarios, NeuroShield integrates a high-performance Monte Carlo "
+        "Simulation Suite ('server/engines/threat/monteCarlo.js' & 'server/services/simulationService.js'). "
+        "The simulation suite is universally accessible to all authenticated operators, including standard employees, allowing organizational "
+        "users to model cyber resilience without administrative elevation:"
+    )
+    add_bullet(
+        doc,
+        "Live Ground-Truth Telemetry Feeding: ",
+        "Rather than relying on abstract hypothetical distributions, the Monte Carlo engine dynamically pulls the operator's locked "
+        "biometric baseline features directly from MongoDB to simulate customized human-factor threat variations."
+    )
+    add_bullet(
+        doc,
+        "Stochastic Scenario Execution: ",
+        "Simulates 100 to 10,000 randomized intrusion iterations across lateral movement trajectories, evaluating defensive containment "
+        "probabilities, mean-time-to-containment (MTTC), and simulated asset compromise rates."
+    )
+
     doc.add_page_break()
 
     # =============================================================
@@ -928,6 +1003,25 @@ def generate_report():
         "scans against critical ports (SSH: 22, HTTP: 80, HTTPS: 443, RDP: 3389, API: 5000, MongoDB: 27017) and audits cloud DNS latency."
     )
 
+    add_styled_heading(doc, "10.3 Universal FIM Canary Tripwire & Scoped Employee Dashboards", level=2)
+    add_p(
+        doc,
+        "NeuroShield enforces strict least-privilege scoping across dashboard views while ensuring universal defensive auditing access:"
+    )
+    add_bullet(
+        doc,
+        "Universal Canary Tripwire Testing: ",
+        "Every user—regardless of role—has access to test the Canary Vault tripwire ('POST /api/auditing/fim/touch-canary'). "
+        "This enables employees to participate in live security validation without possessing administrative privileges."
+    )
+    add_bullet(
+        doc,
+        "Employee Personal Dashboard Scoping: ",
+        "When an employee logs into the dashboard, the backend automatically scopes all queries: the employee views strictly their "
+        "own behavioral biometrics, their personal security alerts, and their personal audit logs. Administrative cluster controls, "
+        "global security rosters, and company-wide event streams remain restricted to ADMIN and SECURITY_ANALYST roles."
+    )
+
     doc.add_page_break()
 
     # =============================================================
@@ -973,7 +1067,7 @@ def generate_report():
     # =============================================================
     # CHAPTER 12: STEP-BY-STEP JUDGING DEMONSTRATION PLAYBOOK
     # =============================================================
-    add_styled_heading(doc, "Chapter 12: Step-by-Step Live Demonstration Playbook For Judges", level=1)
+    add_styled_heading(doc, "Chapter 12: Step-by-Step Live Demonstration Playbook", level=1)
     
     add_p(
         doc,
@@ -984,38 +1078,38 @@ def generate_report():
     demo_steps_full = [
         ("Step 1: Launch Software & 1-Click Persona Authentication",
          "Action: Launch the application via 'npm run electron'.\n"
-         "Script For Judges: 'Judges, notice the 1-CLICK DEMO ACCESS panel on our sign-in screen. We have pre-seeded an enterprise roster "
+         "Script: 'Notice the 1-CLICK DEMO ACCESS panel on our sign-in screen. We have pre-seeded an enterprise roster "
          "covering SOC Admins, CISOs, Analysts, DevOps, and Insiders. I will click SOC Admin (admin@neuroshield.local).'\n"
          "Result: The client authenticates immediately without manual typing and loads the main command dashboard."),
         
         ("Step 2: Inspect Live Pointer & Typing Speed (At-Rest Zero Guarantee)",
          "Action: Direct attention to the top header badge: 'Pointer: 0 px/s | Typing: 0 WPM'. Move the mouse across the desktop.\n"
-         "Script For Judges: 'Notice that while idle, both speed indicators strictly read zero. As I move the mouse anywhere across the Windows OS, "
+         "Script: 'Notice that while idle, both speed indicators strictly read zero. As I move the mouse anywhere across the Windows OS, "
          "the pointer velocity tracks my movement in real time. The moment I pause, deadband filters drop it cleanly back to zero.'\n"
          "Result: Live velocity updates responsively between 0 and 1200+ px/s."),
         
         ("Step 3: Interactive Behavioral Biometric Calibration Sandbox",
          "Action: Navigate to 'Layer 1: Behavioral Biometrics' ('behavior.html'). Type into the live typing sandbox.\n"
-         "Script For Judges: 'NeuroShield continuously monitors human subconscious rhythm. As I type the target sentence, notice the "
+         "Script: 'NeuroShield continuously monitors human subconscious rhythm. As I type the target sentence, notice the "
          "Typing Speed (WPM) and Inter-Key Interval (ms) tracking my cadence. Clicking Analyze Live Telemetry evaluates my dynamics through "
          "our K-Means, One-Class SVM, and Random Forest ensemble.'\n"
          "Result: HUD updates dynamically and outputs a GENUINE classification with anomaly score < 0.20."),
         
         ("Step 4: Execute Markov Threat Simulation on Interactive Attack Graph",
          "Action: Open 'Layer 4: Threat Prediction' ('attack-graph.html'). Drag nodes on the canvas. Click 'EXECUTE 10-STEP SIMULATION'.\n"
-         "Script For Judges: 'Here is our MITRE ATT&CK killchain topology. These nodes represent our enterprise assets. When I execute the simulation, "
+         "Script: 'Here is our MITRE ATT&CK killchain topology. These nodes represent our enterprise assets. When I execute the simulation, "
          "the Markov chain calculates exploit hop probabilities, animating threat wave propagation from Employee Identity to the Database Vault.'\n"
          "Result: Animated threat pulses traverse the canvas and a simulation completion toast alerts across the desktop."),
         
         ("Step 5: Trip File Integrity Canary Tripwire (FIM)",
          "Action: Open 'Endpoint & FIM Audit' ('endpoint-audit.html'). Click 'Trip Canary Trap (Simulate Intrusion)'.\n"
-         "Script For Judges: 'Under NIST SP 800-128, we maintain an active Canary Vault in AppData with SHA-256 baselines. Let us simulate an attacker "
+         "Script: 'Under NIST SP 800-128, we maintain an active Canary Vault in AppData with SHA-256 baselines. Let us simulate an attacker "
          "tampering with our canary files.'\n"
          "Result: An instant, critical red alarm banner ('🚨 FIM CANARY COMPROMISE') pops up across the desktop confirming sub-second detection."),
         
         ("Step 6: Demonstrate Suspicious Insider & Emergency Workstation Lockdown",
          "Action: Log out. Click 'Suspicious Insider' (insider@neuroshield.local) to show suspended status. Log back in as Admin and press 'Ctrl+Shift+L'.\n"
-         "Script For Judges: 'Notice our insider account is automatically suspended due to anomalous 3 AM access. Furthermore, if an operator faces physical "
+         "Script: 'Notice our insider account is automatically suspended due to anomalous 3 AM access. Furthermore, if an operator faces physical "
          "coercion, pressing Ctrl+Shift+L instantly engages our full-screen Zero-Trust Workstation Lockdown.'\n"
          "Result: The frosted lockdown modal locks the host, requiring administrative password verification to restore access.")
     ]
@@ -1051,11 +1145,11 @@ def generate_report():
     style_table_header(tbl_test_full.rows[0], t_widths, ["Test Suite File", "Subsystem Scope", "Tests", "Execution Status"])
 
     test_data_full = [
-        ("tests/algorithms/behavior.test.js", "K-Means, One-Class SVM, Random Forest", "4 Tests", "PASS (100%)"),
-        ("tests/algorithms/trust.test.js", "Temporal decay, step-up auth, lockdown", "4 Tests", "PASS (100%)"),
-        ("tests/algorithms/threat.test.js", "Markov chain transitions, MITRE ATT&CK", "4 Tests", "PASS (100%)"),
-        ("tests/algorithms/humanRisk.test.js", "Decision Tree, Logistic, Bayesian", "4 Tests", "PASS (100%)"),
-        ("tests/api/api.test.js", "Auth, RBAC, Rate Limiting, Deception APIs", "6 Tests", "PASS (100%)")
+        ("tests/algorithms/behavior.test.js", "K-Means, One-Class SVM, Telemetry Preprocessing", "4 Tests", "PASS (100%)"),
+        ("tests/algorithms/trust.test.js", "Temporal decay, fuzzy logic inference, step-up auth", "4 Tests", "PASS (100%)"),
+        ("tests/algorithms/threat.test.js", "Markov chain transitions, MITRE ATT&CK DAG", "4 Tests", "PASS (100%)"),
+        ("tests/algorithms/humanRisk.test.js", "Decision Tree, Logistic, Bayesian Inference", "4 Tests", "PASS (100%)"),
+        ("tests/api/api.test.js", "Auth, RBAC, FIM, Telemetry DB Lock, Password Reset", "16 Tests", "PASS (100%)")
     ]
     for i, t_row in enumerate(test_data_full):
         style_table_row(tbl_test_full.rows[i+1], t_widths, t_row, bg_hex="F8FAFC" if i % 2 == 1 else "FFFFFF", is_bold_first=True)
@@ -1065,7 +1159,7 @@ def generate_report():
         doc,
         "The desktop application is compiled into a standalone Windows NSIS installer using electron-builder ('package.json' dist target). "
         "The build bundles all production native dependencies, compiles the internal Node.js backend, packages client assets, "
-        "and produces a single executable installer: 'dist/NeuroShield Setup 1.0.0.exe' (84.6 MB). "
+        "and produces a single executable installer: 'dist/NeuroShield Setup 1.0.0.exe' (84.66 MB). "
         "The installer deploys to '%LOCALAPPDATA%\\Programs\\NeuroShield', creates desktop shortcuts, and registers uninstaller metadata cleanly."
     )
 
@@ -1107,7 +1201,7 @@ def generate_report():
     )
 
     # Save final document
-    output_path = os.path.abspath("NeuroShield_Software_Working_Report.docx")
+    output_path = os.path.abspath("NeuroShield_Working.docx")
     doc.save(output_path)
     print(f"[SUCCESS] Comprehensive report successfully generated at: {output_path}")
 

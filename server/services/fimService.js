@@ -82,7 +82,7 @@ class FileIntegrityMonitorService {
     });
   }
 
-  _handleFileChange(eventType, filename) {
+  _handleFileChange(eventType, filename, userId = null) {
     const fullPath = path.join(this.watchedDirectory, filename);
     const exists = fs.existsSync(fullPath);
     const newHash = exists ? this.computeHash(fullPath) : null;
@@ -111,12 +111,14 @@ class FileIntegrityMonitorService {
       eventType: 'FIM_CANARY_TAMPERED',
       severity: 'CRITICAL',
       sourceLayer: 'INTELLIGENT_DECEPTION',
+      userId: userId || null,
       description: `File Integrity Monitor triggered! Monitored canary asset '${filename}' was ${exists ? 'modified' : 'deleted'} on host filesystem.`,
       metadata: {
         filename,
         path: fullPath,
         changeType: eventType,
-        newHash: newHash || 'DELETED'
+        newHash: newHash || 'DELETED',
+        triggeredByUserId: userId || null
       }
     }).catch(err => console.warn('[FIM] Event processing notice:', err.message));
 

@@ -40,6 +40,9 @@
       this.activeTypingTimeMs = 0;
       this.osPointerSpeed = 0;
       this.osInstantSpeed = 0;
+      this.lastMeasuredWpm = 0;
+      this.lastMeasuredIki = 0;
+      this.lastMeasuredMouseVelocity = 0;
     }
 
     async updateOsPointerSpeed() {
@@ -59,6 +62,9 @@
       this._handlersInitialized = true;
 
       this._onKeyDown = (e) => {
+        if (e._biometricsProcessed) return;
+        e._biometricsProcessed = true;
+
         const now = performance.now();
         this.totalKeystrokes++;
         this.recentKeyStrokes.push(now);
@@ -74,29 +80,47 @@
             this.interKeyIntervals.push(iki);
             this.activeTypingTimeMs += iki;
             if (this.interKeyIntervals.length > 60) this.interKeyIntervals.shift();
+            this.lastMeasuredIki = Math.round(iki);
           }
         }
         this.lastKeyDownTime = now;
 
-        if (!this.activeKeyDowns.has(e.code)) {
-          this.activeKeyDowns.set(e.code, now);
+        if (this.recentKeyStrokes.length >= 2) {
+          const spanSec = (now - this.recentKeyStrokes[0]) / 1000;
+          if (spanSec > 0.3) {
+            const words = this.recentKeyStrokes.length / 5;
+            const curWpm = Math.min(220, Math.round((words / spanSec) * 60));
+            if (curWpm > 0) this.lastMeasuredWpm = curWpm;
+          }
+        }
+
+        const keyId = e.code || e.key || 'Key';
+        if (!this.activeKeyDowns.has(keyId)) {
+          this.activeKeyDowns.set(keyId, now);
         }
       };
 
       this._onKeyUp = (e) => {
+        if (e._biometricsKeyUpProcessed) return;
+        e._biometricsKeyUpProcessed = true;
+
         const now = performance.now();
-        const downTime = this.activeKeyDowns.get(e.code);
+        const keyId = e.code || e.key || 'Key';
+        const downTime = this.activeKeyDowns.get(keyId);
         if (downTime) {
           const hold = now - downTime;
           if (hold > 10 && hold < 2000) {
             this.keyPressHistory.push(hold);
             if (this.keyPressHistory.length > 60) this.keyPressHistory.shift();
           }
-          this.activeKeyDowns.delete(e.code);
+          this.activeKeyDowns.delete(keyId);
         }
       };
 
       this._onMouseMove = (e) => {
+        if (e._biometricsMoveProcessed) return;
+        e._biometricsMoveProcessed = true;
+
         const now = performance.now();
         this.lastMouseMoveTime = now;
         const pos = { x: e.clientX, y: e.clientY, t: now };
@@ -109,6 +133,7 @@
             const dist = Math.sqrt((pos.x - prev.x) ** 2 + (pos.y - prev.y) ** 2);
             const vel = Math.round(dist / dt);
             this.mouseVelocities.push(vel);
+            if (vel > 0) this.lastMeasuredMouseVelocity = vel;
 
             if (this.mouseVelocities.length > 1) {
               const prevVel = this.mouseVelocities[this.mouseVelocities.length - 2];
@@ -237,9 +262,12 @@
         typingSpeed: evaluatedTypingSpeed,
         instantWpm: instantWpm,
         sessionWpm: sessionWpm,
+        lastMeasuredWpm: this.lastMeasuredWpm || sessionWpm || (this.interKeyIntervals.length ? Math.min(220, Math.round(12000 / avg(this.interKeyIntervals, 115))) : 0),
         typingInterval: typingInterval,
+        lastMeasuredIki: this.lastMeasuredIki || avg(this.interKeyIntervals, 0),
         mouseVelocity: effectiveMouseSpeed,
         appMouseVelocity: appMouseVelocity,
+        lastMeasuredMouseVelocity: this.lastMeasuredMouseVelocity || avg(this.mouseVelocities, 0),
         osPointerSpeed: this.osPointerSpeed || 0,
         osInstantSpeed: this.osInstantSpeed || 0,
         mouseAccel,

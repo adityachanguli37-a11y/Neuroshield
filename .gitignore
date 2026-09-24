@@ -7,3 +7,7 @@ npm-debug.log*
 Thumbs.db
 coverage/
 Coverage/
+.vscode/
+__pycache__/
+*.pyc
+

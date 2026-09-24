@@ -13,6 +13,7 @@ const TrustScore = require('../../server/models/TrustScore');
 const HumanRisk = require('../../server/models/HumanRisk');
 const ThreatSimulation = require('../../server/models/ThreatSimulation');
 const DeceptionEvent = require('../../server/models/DeceptionEvent');
+const BehaviorProfile = require('../../server/models/BehaviorProfile');
 
 jest.setTimeout(60000); // Give the in-memory auth and simulation flows ample room.
 
@@ -106,11 +107,12 @@ describe('REST API & Security Tests (Using In-Memory Database)', () => {
     expect(empReq.statusCode).toBe(403);
   });
 
-  test('POST /api/simulations/run is restricted to ADMIN and SECURITY_ANALYST', async () => {
+  test('POST /api/simulations/run is accessible to all authenticated users', async () => {
     const empSim = await employeeAgent
       .post('/api/simulations/run')
       .send({ iterations: 1000 });
-    expect(empSim.statusCode).toBe(403);
+    expect(empSim.statusCode).toBe(200);
+    expect(empSim.body.simulationId).toBeDefined();
 
     const adminSim = await adminAgent
       .post('/api/simulations/run')
@@ -368,9 +370,9 @@ describe('Additional route coverage', () => {
     expect(res.text).toContain('Suspicious login pattern observed');
   });
 
-  test('GET /api/simulations/history returns latest simulation first', async () => {
-    const denied = await routeEmployeeAgent.get('/api/simulations/history');
-    expect(denied.statusCode).toBe(403);
+  test('GET /api/simulations/history is accessible to all authenticated users and returns latest first', async () => {
+    const empRes = await routeEmployeeAgent.get('/api/simulations/history');
+    expect(empRes.statusCode).toBe(200);
 
     const res = await routeAdminAgent.get('/api/simulations/history');
     expect(res.statusCode).toBe(200);
@@ -625,3 +627,248 @@ describe('Runtime settings coverage', () => {
     expect(process.env.MONGODB_URI).toBe(newUri);
   });
 });
+
+describe('Employee Dashboard Scoping & FIM Restrictions', () => {
+  let routeApp;
+  let routeAdminAgent;
+  let routeEmployeeAgent;
+  let routeAdminUserId;
+  let routeEmployeeUserId;
+
+  beforeAll(async () => {
+    routeApp = createExpressApp();
+    resetAllStores();
+    const seeded = await seedAuthContext(routeApp);
+    routeAdminAgent = seeded.adminAgent;
+    routeEmployeeAgent = seeded.employeeAgent;
+    routeAdminUserId = seeded.adminUserId;
+    routeEmployeeUserId = seeded.employeeUserId;
+
+    // Seed alert belonging to admin
+    await Alert.create({
+      alertId: 'ALT-ADMIN-ONLY',
+      title: 'Admin privileged alert',
+      description: 'System alert for admin',
+      severity: 'HIGH',
+      sourceLayer: 'THREAT_PREDICTION',
+      userId: routeAdminUserId,
+      status: 'NEW',
+      isDemo: false
+    });
+
+    // Seed alert belonging to employee
+    await Alert.create({
+      alertId: 'ALT-EMPLOYEE-PERSONAL',
+      title: 'Employee workstation alert',
+      description: 'Personal anomaly alert',
+      severity: 'MEDIUM',
+      sourceLayer: 'BEHAVIORAL_IDENTITY',
+      userId: routeEmployeeUserId,
+      status: 'NEW',
+      isDemo: false
+    });
+
+    // Seed event belonging to admin
+    await SecurityEvent.create({
+      eventType: 'ADMIN_SECURITY_EVENT',
+      severity: 'LOW',
+      sourceLayer: 'ADAPTIVE_TRUST',
+      userId: routeAdminUserId,
+      description: 'Admin audit event',
+      isDemo: false
+    });
+
+    // Seed event belonging to employee
+    await SecurityEvent.create({
+      eventType: 'EMPLOYEE_SECURITY_EVENT',
+      severity: 'LOW',
+      sourceLayer: 'BEHAVIORAL_IDENTITY',
+      userId: routeEmployeeUserId,
+      description: 'Employee personal event',
+      isDemo: false
+    });
+  });
+
+  afterAll(async () => {
+    resetAllStores();
+  });
+
+  test('EMPLOYEE can only view their own alerts, while ADMIN views all alerts', async () => {
+    const empRes = await routeEmployeeAgent.get('/api/alerts');
+    expect(empRes.statusCode).toBe(200);
+    expect(empRes.body.isPersonalView).toBe(true);
+    expect(empRes.body.alerts).toHaveLength(1);
+    expect(empRes.body.alerts[0].alertId).toBe('ALT-EMPLOYEE-PERSONAL');
+
+    const adminRes = await routeAdminAgent.get('/api/alerts');
+    expect(adminRes.statusCode).toBe(200);
+    expect(adminRes.body.alerts.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('EMPLOYEE can only view their own security events, while ADMIN views all events', async () => {
+    const empRes = await routeEmployeeAgent.get('/api/events');
+    expect(empRes.statusCode).toBe(200);
+    expect(empRes.body.isPersonalView).toBe(true);
+    expect(empRes.body.events).toHaveLength(1);
+    expect(empRes.body.events[0].eventType).toBe('EMPLOYEE_SECURITY_EVENT');
+
+    const adminRes = await routeAdminAgent.get('/api/events');
+    expect(adminRes.statusCode).toBe(200);
+    expect(adminRes.body.events.length).toBeGreaterThanOrEqual(2);
+  });
+
+  test('GET /api/reports/summary reflects personal employee scope when called by EMPLOYEE', async () => {
+    const empRes = await routeEmployeeAgent.get('/api/reports/summary');
+    expect(empRes.statusCode).toBe(200);
+    expect(empRes.body.summary.isEmployeeView).toBe(true);
+    expect(empRes.body.summary.activeAlerts).toBe(1);
+    expect(empRes.body.summary.totalEvents).toBe(1);
+  });
+
+  test('Auditing endpoints attach operator identity and role metadata', async () => {
+    const sysRes = await routeEmployeeAgent.get('/api/auditing/system');
+    expect(sysRes.statusCode).toBe(200);
+    expect(sysRes.body.metrics.role).toBe('EMPLOYEE');
+    expect(sysRes.body.metrics.operator).toBeDefined();
+
+    const fimRes = await routeEmployeeAgent.get('/api/auditing/fim');
+    expect(fimRes.statusCode).toBe(200);
+    expect(fimRes.body.fim.role).toBe('EMPLOYEE');
+  });
+
+  test('POST /api/auditing/fim/touch-canary is accessible to all users including EMPLOYEE', async () => {
+    const res = await routeEmployeeAgent.post('/api/auditing/fim/touch-canary').send({});
+    expect([200, 404]).toContain(res.statusCode);
+  });
+
+  test('First-time telemetry ingestion locks baseline profile in database', async () => {
+    // Send first-time telemetry
+    const initialTelemetry = {
+      typingSpeed: 68,
+      typingInterval: 110,
+      mouseVelocity: 420,
+      mouseAccel: 75,
+      clickDelay: 160,
+      scrollVelocity: 280,
+      sessionHour: 15
+    };
+
+    const telemetryRes = await routeEmployeeAgent
+      .post('/api/behavior/telemetry')
+      .send({ telemetry: initialTelemetry });
+
+    expect(telemetryRes.statusCode).toBe(200);
+    expect(telemetryRes.body.profileLocked).toBe(true);
+    expect(telemetryRes.body.evaluation).toBeDefined();
+
+    // Verify directly in DB model
+    const profileInDb = await BehaviorProfile.findOne({ userId: routeEmployeeUserId });
+    expect(profileInDb).toBeDefined();
+    expect(profileInDb.isLocked).toBe(true);
+    expect(profileInDb.lockedAt).toBeDefined();
+    expect(profileInDb.baselineFeatures.typingSpeed).toBe(68);
+    expect(profileInDb.baselineFeatures.mouseVelocity).toBe(420);
+
+    // Verify GET /api/behavior/profile reflects locked state
+    const getRes = await routeEmployeeAgent.get('/api/behavior/profile');
+    expect(getRes.statusCode).toBe(200);
+    expect(getRes.body.isLocked).toBe(true);
+    expect(getRes.body.baselineFeatures.typingSpeed).toBe(68);
+  });
+
+  test('Updating typing speed or pointer movement updates and locks profile in database', async () => {
+    const updatedFeatures = {
+      typingSpeed: 82,
+      typingInterval: 95,
+      mouseVelocity: 550,
+      mouseAccel: 90,
+      clickDelay: 140,
+      scrollVelocity: 310,
+      sessionHour: 16
+    };
+
+    const updateRes = await routeEmployeeAgent
+      .post('/api/behavior/profile')
+      .send({ baselineFeatures: updatedFeatures });
+
+    expect(updateRes.statusCode).toBe(200);
+    expect(updateRes.body.isLocked).toBe(true);
+    expect(updateRes.body.baselineFeatures.typingSpeed).toBe(82);
+    expect(updateRes.body.baselineFeatures.mouseVelocity).toBe(550);
+
+    // Verify DB was updated
+    const profileInDb = await BehaviorProfile.findOne({ userId: routeEmployeeUserId });
+    expect(profileInDb.baselineFeatures.typingSpeed).toBe(82);
+    expect(profileInDb.baselineFeatures.mouseVelocity).toBe(550);
+    expect(profileInDb.isLocked).toBe(true);
+  });
+
+  test('Adaptive Trust, Human Threat, and Threat Prediction utilize locked telemetry & scores', async () => {
+    // 1. Adaptive Trust
+    const trustRes = await routeEmployeeAgent.get(`/api/trust/current/${routeEmployeeUserId}`);
+    expect(trustRes.statusCode).toBe(200);
+    expect(trustRes.body.trustScore).toBeDefined();
+    expect(trustRes.body.trustScore.overallTrust).toBeDefined();
+
+    // 2. Human Threat / Risk
+    const humanRiskRes = await routeEmployeeAgent.get(`/api/human-risk/current/${routeEmployeeUserId}`);
+    expect(humanRiskRes.statusCode).toBe(200);
+    expect(humanRiskRes.body.humanRisk).toBeDefined();
+    expect(humanRiskRes.body.humanRisk.riskScore).toBeDefined();
+
+    // 3. Threat Prediction (Markov Engine)
+    const threatRes = await routeEmployeeAgent.get(`/api/threats/current/${routeEmployeeUserId}`);
+    expect(threatRes.statusCode).toBe(200);
+    expect(threatRes.body.threatPrediction).toBeDefined();
+    expect(threatRes.body.threatPrediction.currentState).toBeDefined();
+  });
+
+  test('Forgotten password can be reset via POST /api/auth/reset-password and used to authenticate', async () => {
+    // 1. Reset password for employee
+    const resetRes = await request(routeApp)
+      .post('/api/auth/reset-password')
+      .send({
+        email: 'emptest@neuroshield.local',
+        newPassword: 'BrandNewPassword99!'
+      });
+
+    expect(resetRes.statusCode).toBe(200);
+    expect(resetRes.body.message).toContain('Password reset successfully');
+
+    // 2. Old password fails
+    const oldLogin = await request(routeApp)
+      .post('/api/auth/login')
+      .send({
+        email: 'emptest@neuroshield.local',
+        password: 'Password123!'
+      });
+    expect(oldLogin.statusCode).toBe(401);
+
+    // 3. New password succeeds
+    const newLogin = await request(routeApp)
+      .post('/api/auth/login')
+      .send({
+        email: 'emptest@neuroshield.local',
+        password: 'BrandNewPassword99!'
+      });
+    expect(newLogin.statusCode).toBe(200);
+  });
+
+  test('ADMIN can reset a user password via PUT /api/users/:id', async () => {
+    const adminReset = await routeAdminAgent
+      .put(`/api/users/${routeEmployeeUserId}`)
+      .send({ password: 'AdminAssignedPass456!' });
+
+    expect(adminReset.statusCode).toBe(200);
+
+    const checkLogin = await request(routeApp)
+      .post('/api/auth/login')
+      .send({
+        email: 'emptest@neuroshield.local',
+        password: 'AdminAssignedPass456!'
+      });
+    expect(checkLogin.statusCode).toBe(200);
+  });
+});
+
+

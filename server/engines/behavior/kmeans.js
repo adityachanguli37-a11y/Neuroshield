@@ -18,8 +18,9 @@ class KMeansAnomalyDetector {
     }
 
     const distance = Math.sqrt(sumSquared);
-    // Convert distance to anomaly score (0 to 1) using sigmoid scaling
-    const anomalyScore = 1 / (1 + Math.exp(-(distance - 2.0)));
+    // In a 7-dimensional normalized feature space, expected distance for normal variation is ~1.5 - 2.5.
+    // Sigmoid is centered at 3.2 (with slope 1.2) so that genuine human cadences yield low anomaly scores.
+    const anomalyScore = 1 / (1 + Math.exp(-1.2 * (distance - 3.2)));
     return {
       distance: Number(distance.toFixed(4)),
       anomalyScore: Number(anomalyScore.toFixed(4))

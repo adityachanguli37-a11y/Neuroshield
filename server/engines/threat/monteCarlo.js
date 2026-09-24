@@ -87,9 +87,15 @@ function runMonteCarloSimulation(options = {}) {
     .slice(0, 5);
 
   // Identify bottleneck node (most frequently visited intermediate node)
-  let maxVisitIdx = 1;
+  const startIdx = STATES.indexOf(initialState);
+  let maxVisitIdx = (startIdx === 1) ? 2 : 1;
+  let maxVisits = -1;
+
   for (let k = 1; k < STATES.length - 1; k++) {
-    if (nodeVisits[k] > nodeVisits[maxVisitIdx]) {
+    // Discount initial step 0 visit count so we measure true intermediate path concentration
+    const visits = (k === startIdx) ? Math.max(0, nodeVisits[k] - validIterations) : nodeVisits[k];
+    if (visits > maxVisits) {
+      maxVisits = visits;
       maxVisitIdx = k;
     }
   }

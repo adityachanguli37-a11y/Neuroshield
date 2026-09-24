@@ -5,26 +5,46 @@
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body {
+      padding: 24px;
+      background: transparent;
+      color: var(--text-primary);
+    }
+  </style>
 </head>
-<body style="padding: 24px; background: var(--bg-primary);">
-  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Security Alerts Operations</h1>
-  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Prioritized alerts with lifecycle management (NEW, ACKNOWLEDGED, INVESTIGATING, RESOLVED).</p>
+<body>
+  <div style="margin-bottom: 20px;">
+    <h1 style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+      <span class="system-pulse"></span>
+      SECURITY ALERTS & INCIDENT TRIAGE
+      <span id="badge-alerts-scope" class="tag-severity tag-LOW" style="font-size: 10px; margin-left: 8px; display: none;">[ PERSONAL ALERTS ROSTER ]</span>
+    </h1>
+    <p id="txt-alerts-subtitle" style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+      > Prioritized threat alerts with zero-trust lifecycle management (NEW, ACKNOWLEDGED, INVESTIGATING, RESOLVED).
+    </p>
+  </div>
 
-  <div class="glass-panel" style="padding: 24px;">
+  <div class="glass-panel" style="padding: 20px;">
+    <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+      <span id="txt-alerts-header">// ACTIVE INCIDENT ROSTER & TRIAGE //</span>
+      <span class="indicator"><span class="system-pulse"></span> QUEUE ACTIVE</span>
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Alert ID</th>
-            <th>Severity</th>
-            <th>Title & Description</th>
-            <th>Source Layer</th>
-            <th>Status</th>
-            <th>Actions</th>
+            <th>[ ALERT ID ]</th>
+            <th>[ SEVERITY ]</th>
+            <th>[ INCIDENT TITLE & DETAILS ]</th>
+            <th>[ SOURCE LAYER ]</th>
+            <th>[ LIFECYCLE STATUS ]</th>
+            <th>[ ACTIONS ]</th>
           </tr>
         </thead>
         <tbody id="tbl-alerts">
-          <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Loading security alerts...</td></tr>
+          <tr><td colspan="6" style="text-align: center; color: var(--text-muted); font-family: var(--font-mono);">Querying security alerts...</td></tr>
         </tbody>
       </table>
     </div>
@@ -32,27 +52,51 @@
 
 <script src="../js/api.js"></script>
 <script>
+  let currentUser = {};
+  try {
+    currentUser = JSON.parse(localStorage.getItem('neuroshield_user_info') || '{}');
+    if (!currentUser.role && window.parent && window.parent.localStorage) {
+      currentUser = JSON.parse(window.parent.localStorage.getItem('neuroshield_user_info') || '{}');
+    }
+  } catch (e) {}
+
+  const isEmployee = currentUser.role === 'EMPLOYEE';
+  if (isEmployee) {
+    const badge = document.getElementById('badge-alerts-scope');
+    if (badge) badge.style.display = 'inline-block';
+    const sub = document.getElementById('txt-alerts-subtitle');
+    if (sub) sub.textContent = '> Showing incident alerts and security anomalies detected on your account and workstation.';
+    const hdr = document.getElementById('txt-alerts-header');
+    if (hdr) hdr.textContent = '// EMPLOYEE PERSONAL SECURITY ALERTS //';
+  }
+
   async function loadAlerts() {
     try {
       const res = await window.apiClient.get('/api/alerts');
       const alerts = res.alerts || [];
       const tbody = document.getElementById('tbl-alerts');
       if (alerts.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted);">No security alerts recorded. System operating safely.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-muted); font-family: var(--font-mono);">${isEmployee ? '[ ALL NOMINAL ]: No security alerts recorded for your account.' : '[ ALL SECURE ]: No unresolved alerts recorded. System operating safely.'}</td></tr>`;
       } else {
         tbody.innerHTML = alerts.map(a => `
           <tr>
             <td><code>${a.alertId}</code></td>
-            <td><span class="tag-severity tag-${a.severity}">${a.severity}</span></td>
+            <td><span class="tag-severity tag-${a.severity}">[ ${a.severity} ]</span></td>
             <td>
-              <strong>${a.title}</strong><br>
-              <small style="color:var(--text-secondary);">${a.description}</small>
+              <strong style="color: #fff;">${a.title}</strong><br>
+              <small style="color: var(--text-secondary); font-family: var(--font-mono); font-size: 11px;">${a.description}</small>
             </td>
-            <td><small>${a.sourceLayer}</small></td>
+            <td><code>${a.sourceLayer}</code></td>
             <td><strong>${a.status}</strong></td>
             <td>
-              ${a.status === 'NEW' ? `<button class="btn btn-secondary" onclick="ackAlert('${a.alertId}')" style="padding:4px 8px; font-size:11px;">Acknowledge</button>` : ''}
-              ${a.status !== 'RESOLVED' ? `<button class="btn btn-primary" onclick="resolveAlert('${a.alertId}')" style="padding:4px 8px; font-size:11px; margin-left:4px;">Resolve</button>` : '<span style="color:var(--accent-green); font-size:11px;">✓ Resolved</span>'}
+              ${isEmployee ? (
+                a.status === 'RESOLVED' 
+                  ? '<span style="color: var(--neon-green); font-family: var(--font-mono); font-size: 11px;">✓ RESOLVED</span>'
+                  : '<span style="color: var(--cyber-cyan); font-family: var(--font-mono); font-size: 11px;">[ MONITORED BY SOC ]</span>'
+              ) : (
+                (a.status === 'NEW' ? `<button class="btn btn-secondary" onclick="ackAlert('${a.alertId}')" style="padding: 3px 8px; font-size: 10px;">ACKNOWLEDGE</button>` : '') +
+                (a.status !== 'RESOLVED' ? `<button class="btn btn-primary" onclick="resolveAlert('${a.alertId}')" style="padding: 3px 8px; font-size: 10px; margin-left: 4px;">RESOLVE</button>` : '<span style="color: var(--neon-green); font-family: var(--font-mono); font-size: 11px;">✓ RESOLVED</span>')
+              )}
             </td>
           </tr>
         `).join('');

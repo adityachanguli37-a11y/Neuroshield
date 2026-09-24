@@ -5,25 +5,44 @@
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body {
+      padding: 24px;
+      background: transparent;
+      color: var(--text-primary);
+    }
+  </style>
 </head>
-<body style="padding: 24px; background: var(--bg-primary);">
-  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Append-Only Audit Trail Logs</h1>
-  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">Immutable system operation trail. Modification and deletion of audit logs is strictly prohibited by application policy.</p>
+<body>
+  <div style="margin-bottom: 20px;">
+    <h1 style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+      <span class="system-pulse"></span>
+      IMMUTABLE APPEND-ONLY AUDIT LOGS
+    </h1>
+    <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+      > Cryptographic tamper-evident operational ledger. Modification and deletion prohibited under Zero-Trust audit policy.
+    </p>
+  </div>
 
-  <div class="glass-panel" style="padding: 24px;">
+  <div class="glass-panel" style="padding: 20px;">
+    <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+      <span>// IMMUTABLE AUDIT TRAIL //</span>
+      <span class="indicator"><span class="system-pulse"></span> LEDGER LOCKED</span>
+    </div>
+
     <div class="table-container">
       <table>
         <thead>
           <tr>
-            <th>Timestamp</th>
-            <th>User</th>
-            <th>Action</th>
-            <th>Resource</th>
-            <th>IP Address</th>
+            <th>[ TIMESTAMP ]</th>
+            <th>[ ACTOR / USER ]</th>
+            <th>[ OPERATION ACTION ]</th>
+            <th>[ RESOURCE URI ]</th>
+            <th>[ SOURCE IP ]</th>
           </tr>
         </thead>
         <tbody id="tbl-audit">
-          <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Loading audit logs...</td></tr>
+          <tr><td colspan="5" style="text-align: center; color: var(--text-muted); font-family: var(--font-mono);">Loading cryptographic audit ledger...</td></tr>
         </tbody>
       </table>
     </div>
@@ -37,20 +56,20 @@
       const logs = res.logs || [];
       const tbody = document.getElementById('tbl-audit');
       if (logs.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No audit logs recorded yet.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--text-muted); font-family: var(--font-mono);">No audit logs recorded in buffer yet.</td></tr>`;
       } else {
         tbody.innerHTML = logs.map(l => `
           <tr>
-            <td><small>${new Date(l.timestamp).toLocaleString()}</small></td>
-            <td><strong>${l.userName || 'System'}</strong></td>
-            <td><span class="tag-severity tag-LOW">${l.action}</span></td>
+            <td><code>${new Date(l.timestamp).toLocaleString()}</code></td>
+            <td><strong style="color: #fff;">${l.userName || 'SYSTEM_CORE'}</strong></td>
+            <td><span class="tag-severity tag-LOW">[ ${l.action} ]</span></td>
             <td><code>${l.resource}</code></td>
-            <td><small>${l.ipAddress || '127.0.0.1'}</small></td>
+            <td><span style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary);">${l.ipAddress || '127.0.0.1'}</span></td>
           </tr>
         `).join('');
       }
     } catch (e) {
-      document.getElementById('tbl-audit').innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--accent-red);">${e.message}</td></tr>`;
+      document.getElementById('tbl-audit').innerHTML = `<tr><td colspan="5" style="text-align: center; color: var(--danger-red); font-family: var(--font-mono);">${e.message}</td></tr>`;
     }
   }
 

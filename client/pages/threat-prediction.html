@@ -5,62 +5,122 @@
   <link rel="stylesheet" href="../css/main.css">
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/components.css">
+  <style>
+    body {
+      padding: 24px;
+      background: transparent;
+      color: var(--text-primary);
+    }
+  </style>
 </head>
-<body style="padding: 24px; background: var(--bg-primary);">
-  <h1 style="font-size: 22px; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">Layer 4: Markov Threat Prediction Engine</h1>
-  <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;">7-State Stochastic Markov Chain threat propagation model with context-sensitive transition matrix.</p>
+<body>
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 14px;">
+    <div>
+      <h1 style="font-family: var(--font-mono); font-size: 20px; font-weight: 800; color: #ffffff; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px;">
+        <span class="system-pulse"></span>
+        LAYER 04: MARKOV THREAT PREDICTION ENGINE
+      </h1>
+      <p style="font-family: var(--font-mono); font-size: 11px; color: var(--text-secondary); margin-top: 4px;">
+        > 7-State Stochastic Markov Chain threat propagation model with context-sensitive transition matrix.
+      </p>
+    </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+    <!-- Quick Action Controls -->
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <button id="btn-recalc-threat" class="btn-cyber-primary" style="font-size: 11px; padding: 7px 14px; display: flex; align-items: center; gap: 6px; cursor: pointer;">
+        <span>⚡</span> RECALCULATE LIVE THREAT
+      </button>
+      <button id="btn-reset-threat" class="btn-cyber-ghost" style="font-size: 11px; padding: 7px 14px; display: flex; align-items: center; gap: 6px; cursor: pointer; border-color: rgba(255, 75, 75, 0.4); color: #ff6b6b;">
+        <span>🛡️</span> RESET INCIDENT STATE
+      </button>
+    </div>
+  </div>
+
+  <div id="threat-action-status" style="display: none; margin-bottom: 16px; padding: 10px 16px; border-radius: var(--border-radius-sm); font-family: var(--font-mono); font-size: 11px;"></div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
     <!-- Threat State Panel -->
-    <div class="glass-panel" style="padding: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">Current Markov Threat State</h3>
-      <div class="metric-card" style="margin-bottom: 20px;">
-        <div class="metric-title">Current State</div>
-        <div class="metric-value" id="val-current-state" style="color: var(--accent-cyan);">NORMAL</div>
-        <div class="metric-subtitle">BASELINE SECURE OPERATIONAL STATE</div>
+    <div class="glass-panel" style="padding: 20px;">
+      <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+        <span>// STOCHASTIC THREAT STATE //</span>
+        <span class="indicator"><span class="system-pulse"></span> PREDICTOR ONLINE</span>
       </div>
 
-      <div style="margin-bottom: 12px;">
-        <strong>Threat Probability:</strong> <span id="val-threat-prob">0.08</span>
+      <div class="metric-card" style="margin-bottom: 18px;">
+        <div class="metric-header">
+          <span class="metric-title">CURRENT MARKOV STATE</span>
+          <span class="metric-code" id="val-state-index">[ STATE_0 ]</span>
+        </div>
+        <div class="metric-value" id="val-current-state" style="color: var(--neon-green);">NORMAL</div>
+        <div class="metric-subtitle" id="val-current-state-subtitle">
+          <span class="system-pulse" style="width: 6px; height: 6px;"></span> BASELINE SECURE OPERATIONAL STATE
+        </div>
       </div>
-      <div style="margin-bottom: 12px;">
-        <strong>Compromise Reachability:</strong> <span id="val-comp-prob">0.05</span>
-      </div>
-      <div style="margin-bottom: 12px;">
-        <strong>Critical Asset Node Bottleneck:</strong> <span id="val-crit-node" style="color:var(--accent-red);">CRITICAL_ASSET</span>
+
+      <div style="display: flex; flex-direction: column; gap: 10px; font-family: var(--font-mono); font-size: 11px;">
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(9, 14, 22, 0.7); border: 1px solid rgba(0, 229, 255, 0.12); border-radius: var(--border-radius-sm);">
+          <span style="color: var(--text-secondary);">[01] Threat Probability:</span>
+          <strong id="val-threat-prob" style="color: var(--neon-purple);">0.08</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(9, 14, 22, 0.7); border: 1px solid rgba(0, 229, 255, 0.12); border-radius: var(--border-radius-sm);">
+          <span style="color: var(--text-secondary);">[02] Compromise Reachability:</span>
+          <strong id="val-comp-prob" style="color: var(--warning-orange);">0.05</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; padding: 8px 12px; background: rgba(9, 14, 22, 0.7); border: 1px solid rgba(0, 229, 255, 0.12); border-radius: var(--border-radius-sm);">
+          <span style="color: var(--text-secondary);">[03] Critical Asset Bottleneck:</span>
+          <strong id="val-crit-node" style="color: var(--cyber-cyan);">SUSPICIOUS</strong>
+        </div>
       </div>
     </div>
 
     <!-- 7 State Distribution Bar Charts -->
-    <div class="glass-panel" style="padding: 24px;">
-      <h3 style="font-size: 16px; font-weight: 700; margin-bottom: 16px;">5-Step State Probability Distribution</h3>
-      <div id="state-distribution-list">
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>0: NORMAL</span><span id="p-NORMAL">85%</span></div>
+    <div class="glass-panel" style="padding: 20px;">
+      <div class="cyber-panel-header" style="margin: -20px -20px 14px -20px; padding: 10px 16px;">
+        <span>// 5-STEP MARKOV PROBABILITY SPREAD //</span>
+        <span class="indicator"><span class="system-pulse"></span> 7-STATES ACTIVE</span>
+      </div>
+
+      <div id="state-distribution-list" style="font-family: var(--font-mono); font-size: 11px;">
+        <div style="margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>0: NORMAL (SAFE)</span><span id="p-NORMAL" style="color: var(--neon-green);">85%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-NORMAL" style="width: 85%;"></div></div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>1: SUSPICIOUS</span><span id="p-SUSPICIOUS">10%</span></div>
+        <div style="margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>1: SUSPICIOUS</span><span id="p-SUSPICIOUS" style="color: var(--warning-orange);">10%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-SUSPICIOUS" style="width: 10%;"></div></div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>2: INITIAL_COMPROMISE</span><span id="p-INITIAL_COMPROMISE">3%</span></div>
+        <div style="margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>2: INITIAL_COMPROMISE</span><span id="p-INITIAL_COMPROMISE" style="color: var(--cyber-cyan);">3%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-INITIAL_COMPROMISE" style="width: 3%;"></div></div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>3: COMPROMISED</span><span id="p-COMPROMISED">1%</span></div>
+        <div style="margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>3: COMPROMISED</span><span id="p-COMPROMISED" style="color: var(--danger-red);">1%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-COMPROMISED" style="width: 1%;"></div></div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>4: LATERAL_MOVEMENT</span><span id="p-LATERAL_MOVEMENT">0.5%</span></div>
+        <div style="margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>4: LATERAL_MOVEMENT</span><span id="p-LATERAL_MOVEMENT">0.5%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-LATERAL_MOVEMENT" style="width: 0.5%;"></div></div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>5: PRIVILEGE_ESCALATION</span><span id="p-PRIVILEGE_ESCALATION">0.3%</span></div>
+        <div style="margin-bottom: 8px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>5: PRIVILEGE_ESCALATION</span><span id="p-PRIVILEGE_ESCALATION">0.3%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-PRIVILEGE_ESCALATION" style="width: 0.3%;"></div></div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px;"><span>6: CRITICAL_COMPROMISE</span><span id="p-CRITICAL_COMPROMISE">0.2%</span></div>
+        <div style="margin-bottom: 4px;">
+          <div style="display:flex; justify-content:space-between; margin-bottom: 2px;">
+            <span>6: CRITICAL_COMPROMISE</span><span id="p-CRITICAL_COMPROMISE">0.2%</span>
+          </div>
           <div class="progress-bar-container"><div class="progress-bar-fill" id="bar-CRITICAL_COMPROMISE" style="width: 0.2%;"></div></div>
         </div>
       </div>
@@ -69,31 +129,146 @@
 
 <script src="../js/api.js"></script>
 <script>
-  async function loadThreatData() {
+  const STATE_METADATA = {
+    NORMAL: {
+      color: 'var(--neon-green)',
+      index: '[ STATE_0 ]',
+      subtitle: 'BASELINE SECURE OPERATIONAL STATE'
+    },
+    SUSPICIOUS: {
+      color: 'var(--warning-orange)',
+      index: '[ STATE_1 ]',
+      subtitle: 'ANOMALOUS BEHAVIOR DIVERGENCE OBSERVED'
+    },
+    INITIAL_COMPROMISE: {
+      color: 'var(--warning-orange)',
+      index: '[ STATE_2 ]',
+      subtitle: 'ELEVATED HUMAN RISK / REPEATED ANOMALIES'
+    },
+    COMPROMISED: {
+      color: 'var(--danger-red)',
+      index: '[ STATE_3 ]',
+      subtitle: 'ACTIVE SYSTEM COMPROMISE / DECEPTION TRAP TRIGGERED'
+    },
+    LATERAL_MOVEMENT: {
+      color: 'var(--danger-red)',
+      index: '[ STATE_4 ]',
+      subtitle: 'INTERNAL PROPAGATION / LATERAL TRAVERSAL'
+    },
+    PRIVILEGE_ESCALATION: {
+      color: 'var(--danger-red)',
+      index: '[ STATE_5 ]',
+      subtitle: 'ADMIN PRIVILEGE ESCALATION ATTEMPTED'
+    },
+    CRITICAL_COMPROMISE: {
+      color: 'var(--danger-red)',
+      index: '[ STATE_6 ]',
+      subtitle: 'CRITICAL ASSETS BREACHED / SYSTEM COMPROMISED'
+    }
+  };
+
+  function updateThreatDisplay(t) {
+    if (!t) return;
+    const stateEl = document.getElementById('val-current-state');
+    const indexEl = document.getElementById('val-state-index');
+    const subEl = document.getElementById('val-current-state-subtitle');
+    const threatProbEl = document.getElementById('val-threat-prob');
+    const compProbEl = document.getElementById('val-comp-prob');
+    const critNodeEl = document.getElementById('val-crit-node');
+
+    const meta = STATE_METADATA[t.currentState] || STATE_METADATA.NORMAL;
+
+    stateEl.textContent = t.currentState;
+    stateEl.style.color = meta.color;
+    indexEl.textContent = meta.index;
+    subEl.innerHTML = `<span class="system-pulse" style="width: 6px; height: 6px;"></span> ${meta.subtitle}`;
+
+    threatProbEl.textContent = t.threatProbability !== undefined ? t.threatProbability : '0.00';
+    compProbEl.textContent = t.compromiseProbability !== undefined ? t.compromiseProbability : '0.00';
+    critNodeEl.textContent = t.criticalNode || 'CRITICAL_ASSET';
+    critNodeEl.style.color = (t.currentState === 'NORMAL') ? 'var(--cyber-cyan)' : 'var(--danger-red)';
+
+    if (t.nextStateDistribution) {
+      for (const key in t.nextStateDistribution) {
+        const val = t.nextStateDistribution[key] || 0;
+        const pct = (val * 100).toFixed(1);
+        const pEl = document.getElementById(`p-${key}`);
+        const bEl = document.getElementById(`bar-${key}`);
+        if (pEl) pEl.textContent = `${pct}%`;
+        if (bEl) bEl.style.width = `${Math.max(1, pct)}%`;
+      }
+    }
+  }
+
+  function showStatus(text, isError = false) {
+    const el = document.getElementById('threat-action-status');
+    if (!el) return;
+    el.style.display = 'block';
+    el.style.background = isError ? 'rgba(255, 23, 68, 0.15)' : 'rgba(0, 230, 118, 0.15)';
+    el.style.border = isError ? '1px solid rgba(255, 23, 68, 0.4)' : '1px solid rgba(0, 230, 118, 0.4)';
+    el.style.color = isError ? '#ff5252' : '#00e676';
+    el.textContent = text;
+    setTimeout(() => {
+      el.style.display = 'none';
+    }, 4500);
+  }
+
+  async function loadThreatData(forceRecalculate = false) {
     try {
       const user = JSON.parse(localStorage.getItem('neuroshield_user_info') || '{}');
-      const res = await window.apiClient.get(`/api/threats/current/${user._id || 'demo'}`);
-      const t = res.threatPrediction;
-      if (t) {
-        document.getElementById('val-current-state').textContent = t.currentState;
-        document.getElementById('val-threat-prob').textContent = t.threatProbability;
-        document.getElementById('val-comp-prob').textContent = t.compromiseProbability;
-        document.getElementById('val-crit-node').textContent = t.criticalNode || 'CRITICAL_ASSET';
-
-        if (t.nextStateDistribution) {
-          for (const key in t.nextStateDistribution) {
-            const val = t.nextStateDistribution[key] || 0;
-            const pct = (val * 100).toFixed(1);
-            const pEl = document.getElementById(`p-${key}`);
-            const bEl = document.getElementById(`bar-${key}`);
-            if (pEl) pEl.textContent = `${pct}%`;
-            if (bEl) bEl.style.width = `${Math.max(1, pct)}%`;
-          }
-        }
+      const url = `/api/threats/current/${user._id || 'demo'}${forceRecalculate ? '?recalculate=true' : ''}`;
+      const res = await window.apiClient.get(url);
+      if (res && res.threatPrediction) {
+        updateThreatDisplay(res.threatPrediction);
       }
     } catch (e) {
       console.warn('Threat prediction note:', e.message);
     }
+  }
+
+  // Recalculate Live Threat Button
+  document.getElementById('btn-recalc-threat').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-recalc-threat');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    try {
+      const res = await window.apiClient.post('/api/threats/recalculate', {});
+      if (res && res.threatPrediction) {
+        updateThreatDisplay(res.threatPrediction);
+        showStatus(`[OK] Live threat state recomputed: ${res.threatPrediction.currentState}`);
+      }
+    } catch (e) {
+      showStatus(`[ERR] Failed to recalculate threat: ${e.message}`, true);
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  });
+
+  // Reset Incident State Button
+  document.getElementById('btn-reset-threat').addEventListener('click', async () => {
+    const btn = document.getElementById('btn-reset-threat');
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    try {
+      const res = await window.apiClient.post('/api/threats/reset', {});
+      if (res && res.threatPrediction) {
+        updateThreatDisplay(res.threatPrediction);
+        showStatus('[RESTORED] Threat operational baseline restored to NORMAL (SAFE).');
+      }
+    } catch (e) {
+      showStatus(`[ERR] Failed to reset threat: ${e.message}`, true);
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  });
+
+  // Listen for socket real-time updates
+  if (window.apiClient && typeof window.apiClient.on === 'function') {
+    window.apiClient.on('threat:update', (updatedThreat) => {
+      updateThreatDisplay(updatedThreat);
+    });
   }
 
   loadThreatData();
